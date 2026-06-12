@@ -4,6 +4,7 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -61,7 +62,18 @@ func initConfig() {
 		// 没传，就使用系统默认路径
 		viper.SetConfigName(".config") // 配置文件名（不带扩展名）
 		viper.SetConfigFile("yaml")    // 文件类型
-		viper.AddConfigPath("$HOME/")  // 添加配置文件所在的路径
+		viper.AddConfigPath("config")  // 添加配置文件所在的路径
 		viper.AddConfigPath(".")       // 也可以在当前目录下寻找配置文件
+		viper.AddConfigPath("$HOME")   // 也可以在用户的 home 目录下寻找配置文件
+	}
+
+	viper.AutomaticEnv() // 读取环境变量 环境变量也纳入优先级
+
+	if err := viper.ReadInConfig(); err != nil {
+		// 读不到配置文件，可能是用户想用默认值
+		// 只有传了 --config 但是读不到的时候才报错
+		if cfgFile != "" {
+			panic(fmt.Errorf("config file not found:%s", cfgFile))
+		}
 	}
 }

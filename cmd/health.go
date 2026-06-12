@@ -11,10 +11,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	host    string
+	port    int
+	timeout time.Duration
+)
+
 // healthCmd represents the health command
 var healthCmd = &cobra.Command{
 	Use:   "health",
-	Short: "A brief description of your command",
+	Short: "检查服务的健康状态",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -22,12 +28,22 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		checkTCPPort("localhost", 8080)
+		start := time.Now()
+		result := checkTCP(host, port)
+		if result == nil {
+			latency := time.Since(start).Milliseconds()
+			fmt.Printf("服务 %s:%d 健康 (响应时间: %dms)\n", host, port, latency)
+		} else {
+			fmt.Printf("服务 %s:%d 不健康\n", host, port)
+		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(healthCmd)
+	healthCmd.Flags().StringVarP(&host, "host", "", "localhost", "服务主机地址")
+	healthCmd.Flags().IntVarP(&port, "port", "", 3306, "服务端口")
+	healthCmd.Flags().DurationVarP(&timeout, "timeout", "", 5*time.Second, "连接超时时间")
 
 	// Here you will define your flags and configuration settings.
 
@@ -41,11 +57,7 @@ func init() {
 }
 
 // TCP 端口探测，
-func checkTCPPort(host string, port int) {
-	_, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 5*time.Second)
-	if err != nil {
-		fmt.Printf("TCP %s:%d is closed\n", host, port)
-	} else {
-		fmt.Printf("TCP %s:%d is open\n", host, port)
-	}
+func checkTCP(host string, port int) error {
+	_, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeout)
+	return err
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // versionCmd represents the version command
@@ -15,7 +16,13 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number",
 	Long:  `Gopher Ops Toolkit is a collection of tools and utilities designed to assist Go developers in various aspects of their development workflow. It provides a set of commands and features that can help with tasks such as code generation, project scaffolding, dependency management, and more. The toolkit aims to streamline the development process and enhance productivity for Go developers.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("v0.1.0")
+		verbose := viper.GetBool("verbose")
+		version := "v0.1.0"
+		if verbose {
+			fmt.Printf("version: %s\nconfig: %s\n", version, cfgFile)
+		} else {
+			fmt.Println(version)
+		}
 	},
 }
 

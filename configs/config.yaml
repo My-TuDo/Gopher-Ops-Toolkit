@@ -1,3 +1,4 @@
 log_level: info
 timeout: 30s
-verbose: false
+verbose: true
+

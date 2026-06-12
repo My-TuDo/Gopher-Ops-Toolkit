@@ -50,7 +50,7 @@ func init() {
 	// when this action is called directly.
 
 	cobra.OnInitialize(initConfig) // 告诉 cobra 在执行任何命令之前先运行 initConfig 函数
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.config.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "configs/config.yaml", "config file (default is $HOME/.config.yaml)")
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -60,9 +60,9 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// 没传，就使用系统默认路径
-		viper.SetConfigName(".config") // 配置文件名（不带扩展名）
-		viper.SetConfigFile("yaml")    // 文件类型
-		viper.AddConfigPath("config")  // 添加配置文件所在的路径
+		viper.SetConfigName("config")  // 配置文件名（不带扩展名）
+		viper.SetConfigType("yaml")    // 文件类型
+		viper.AddConfigPath("configs") // 添加配置文件所在的路径
 		viper.AddConfigPath(".")       // 也可以在当前目录下寻找配置文件
 		viper.AddConfigPath("$HOME")   // 也可以在用户的 home 目录下寻找配置文件
 	}

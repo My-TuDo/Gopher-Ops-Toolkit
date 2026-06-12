@@ -1,11 +1,12 @@
 /*
 Copyright © 2026 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
 import (
 	"fmt"
+	"net"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +22,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("health called")
+		checkTCPPort("localhost", 8080)
 	},
 }
 
@@ -37,4 +38,14 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// healthCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+// TCP 端口探测，
+func checkTCPPort(host string, port int) {
+	_, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), 5*time.Second)
+	if err != nil {
+		fmt.Printf("TCP %s:%d is closed\n", host, port)
+	} else {
+		fmt.Printf("TCP %s:%d is open\n", host, port)
+	}
 }

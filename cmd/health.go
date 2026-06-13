@@ -4,8 +4,11 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"net"
+	"net/http"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -16,6 +19,14 @@ var (
 	port    int
 	timeout time.Duration
 )
+
+type Result struct {
+	Name    string `json:"name"`              // 项目名称
+	Target  string `json:"target"`            // 目标地址
+	Status  string `json:"status"`            // 健康状态
+	Error   string `json:"error,omitempty"`   // 错误信息（如果有）
+	Latency int64  `json:"latency,omitempty"` // 响应时间（如果健康）
+}
 
 // healthCmd represents the health command
 var healthCmd = &cobra.Command{
@@ -60,4 +71,32 @@ func init() {
 func checkTCP(host string, port int) error {
 	_, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", host, port), timeout)
 	return err
+}
+
+// HTTP 探测
+func checkHTTP(url string) error {
+	// 实现HTTP探测逻辑
+
+	// 发送HTTP请求并检查响应
+	client := http.Client{}
+
+	// 设置动态超时控制
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// 创建HTTP请求
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		log.Printf("创建HTTP请求失败: %v", err)
+	}
+
+	// 发送请求并检查响应
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("发送HTTP请求失败: %v", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	//
 }

@@ -55,16 +55,14 @@ func init() {
 	healthCmd.Flags().StringVarP(&host, "host", "", "localhost", "服务主机地址")
 	healthCmd.Flags().IntVarP(&port, "port", "", 3306, "服务端口")
 	healthCmd.Flags().DurationVarP(&timeout, "timeout", "", 5*time.Second, "连接超时时间")
+}
 
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// healthCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// healthCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+// Sting 格式化输出结果
+func (r Result) String() string {
+	if r.Error != "" {
+		return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 错误: %s", r.Name, r.Target, r.Status, r.Error)
+	}
+	return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s", r.Name, r.Target, r.Status)
 }
 
 // TCP 端口探测，
@@ -98,5 +96,9 @@ func checkHTTP(url string) error {
 	}
 	defer resp.Body.Close()
 
-	//
+	// 检查HTTP状态码
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return nil // 健康
+	}
+	return fmt.Errorf("HTTP状态码异常: %d", resp.StatusCode)
 }

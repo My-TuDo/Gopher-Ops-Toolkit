@@ -37,8 +37,39 @@ to quickly create a Cobra application.`,
 
 		// 分支一：单项协议探测
 		if p, exists := prober.Probers[probeType]; exists {
+			res := p.Probe(target, timeout)
 
+			fmt.Println(res.String())
+
+			if res.Status != "健康" {
+				os.Exit(1)
+			}
+			return
 		}
+
+		// 分支二：全项探测
+		if probeType == "all" {
+			fmt.Println("开始全项探测...")
+			allSuccess := true
+			for _, p := range prober.Probers {
+				res := p.Probe(target, timeout)
+				fmt.Println(res.String())
+				if res.Status != "健康" {
+					allSuccess = false
+				}
+			}
+
+			if allSuccess {
+				fmt.Println("所有探测项均通过！")
+			} else {
+				os.Exit(1)
+			}
+			return
+		}
+
+		// 无效的探测类型
+		fmt.Printf("错误：无效的探测类型 '%s'。支持 'tcp', 'http', 'all'。\n", probeType)
+		os.Exit(1)
 	},
 }
 

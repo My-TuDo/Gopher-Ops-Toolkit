@@ -36,6 +36,7 @@ func (t TCPResult) checkTCP(host string, port int, timeout time.Duration) Result
 		Name:    "TCP探测",
 		Target:  fmt.Sprintf("%s:%d", host, port),
 		Status:  "健康",
+		Detail:  "端口开放",
 		Latency: latency,
 	}
 }

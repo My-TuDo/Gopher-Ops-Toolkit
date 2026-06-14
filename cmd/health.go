@@ -4,8 +4,11 @@ Copyright © 2026 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+	"os"
 	"time"
 
+	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/prober"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -25,6 +28,17 @@ to quickly create a Cobra application.`,
 		target := viper.GetString("health.target")
 		timeout := viper.GetDuration("health.timeout")
 		probeType := viper.GetString("health.type")
+
+		// 防御性编程：如果命令行没传，同时配置文件也没有写target，才报错提示用户
+		if target == "" {
+			fmt.Println("错误：未指定探测目标。请通过 --target 参数或在配置文件中设置！")
+			os.Exit(1)
+		}
+
+		// 分支一：单项协议探测
+		if p, exists := prober.Probers[probeType]; exists {
+
+		}
 	},
 }
 

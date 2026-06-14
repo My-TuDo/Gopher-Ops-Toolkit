@@ -28,6 +28,6 @@ type Prober interface {
 }
 
 // 全局注册表
-var probers = map[string]Prober{
+var Probers = map[string]Prober{
 	"tcp": &TCPProber{},
 }

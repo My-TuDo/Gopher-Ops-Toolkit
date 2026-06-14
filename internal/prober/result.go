@@ -25,3 +25,9 @@ func (r Result) String() string {
 type Prober interface {
 	Probe(host, port string, timeout time.Duration) Result
 }
+
+// 全局注册表
+var probers = map[string]Prober{
+	"tcp":  &TCPResult{},
+	"http": &HTTPResult{},
+}

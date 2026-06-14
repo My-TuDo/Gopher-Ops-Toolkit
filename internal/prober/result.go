@@ -24,11 +24,10 @@ func (r Result) String() string {
 
 // 定义一个接口，所有探测器都实现这个接口
 type Prober interface {
-	Probe(host, port string, timeout time.Duration) Result
+	Probe(target string, timeout time.Duration) Result
 }
 
 // 全局注册表
 var probers = map[string]Prober{
-	"tcp":  &TCPResult{},
-	"http": &HTTPResult{},
+	"tcp": &TCPProber{},
 }

@@ -10,6 +10,7 @@ type Result struct {
 	Target  string `json:"target"`            // 目标地址
 	Status  string `json:"status"`            // 健康状态
 	Error   string `json:"error,omitempty"`   // 错误信息（如果有）
+	Detail  string `json:"detail,omitempty"`  // 详细信息（可选）
 	Latency int64  `json:"latency,omitempty"` // 响应时间（如果健康）
 }
 

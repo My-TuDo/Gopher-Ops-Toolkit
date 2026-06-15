@@ -1,7 +1,7 @@
 
 health:   # 健康检查配置：不输入参数时默认为 tcp 探测。
-  - name: tcp
-    type: tcp
-    target: "localhost:8080"
-    interval: 10s
-    timeout: 5s
+  - name: tcp # 探测名称，默认为 tcp。
+    type: tcp # 探测类型，默认为 tcp。
+    target: "localhost:8080"  # 探测目标地址，默认为 localhost:8080。
+    interval: 10s # 探测间隔，默认为 10s。
+    timeout: 5s # 探测超时时间，默认为 5s。

@@ -29,5 +29,6 @@ type Prober interface {
 
 // 全局注册表
 var Probers = map[string]Prober{
-	"tcp": &TCPProber{},
+	"tcp":  &TCPProber{},
+	"http": &HTTPProber{},
 }

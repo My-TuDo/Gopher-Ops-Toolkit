@@ -4,32 +4,26 @@
 
 
 ops-toolkit/
-├── cmd
-│   ├── exec.go         # 子命令目录
+├── cmd/
+│   ├── exec.go         # 远程命令执行
 │   ├── health.go       # 健康检查命令
 │   ├── log.go          # 日志分析命令
 │   ├── monitor.go      # 批量执行命令
-│   ├── root.go         # 简易监控命令
+│   ├── root.go         # 根命令 & 配置初始化
 │   └── version.go      # 版本信息
-├── configs
-│   └── config.yaml
+├── configs/
+│   └── config.yaml     # 配置文件
+├── internal/
+│   ├── output/         # 统一输出格式（JSON/表格）
+│   ├── prober/         # 健康检查探针
+│   │   ├── http.go     # HTTP 探测
+│   │   ├── result.go   # 探测结果结构体
+│   │   └── tcp.go      # TCP 端口探测
+│   ├── ssh/            # SSH 连接封装
+│   └── utils/          # 通用函数
 ├── go.mod
 ├── go.sum
-├── internal            # 内部共享代码
-│   ├── output          # 统一输出格式（JSON/表格）
-│   ├── ssh             # SSH 连接封装
-│   └── utils           # 通用函数
 ├── LICENSE
 ├── main.go             # CLI 入口（使用 cobra 库）
 ├── README.md
-└── reasonix.toml        
-        
-
-        
-        
-       
-       
-        
-        
-
-        
+└── reasonix.toml

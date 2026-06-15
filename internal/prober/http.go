@@ -9,6 +9,8 @@ import (
 type HTTPProber struct{}
 
 func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
+	target = "http://" + target
+
 	// 计算开始时间
 	start := time.Now()
 

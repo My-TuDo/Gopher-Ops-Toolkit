@@ -1,4 +1,7 @@
-log_level: info
-timeout: 30s
-verbose: true
 
+health:   # 健康检查配置：不输入参数时默认为 tcp 探测。
+  - name: tcp
+    type: tcp
+    target: "localhost:8080"
+    interval: 10s
+    timeout: 5s

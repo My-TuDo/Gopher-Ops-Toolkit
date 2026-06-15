@@ -31,4 +31,35 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		}
 	}
 
+	// 发送 HTTP 请求
+	resp, err := client.Do(req)
+	if err != nil {
+		return Result{
+			Name:    "HTTP探测",
+			Target:  target,
+			Status:  "不健康",
+			Error:   err.Error(),
+			Latency: time.Since(start).Milliseconds(),
+		}
+	}
+	defer resp.Body.Close()
+
+	// 判断 HTTP 状态码
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return Result{
+			Name:    "HTTP探测",
+			Target:  target,
+			Status:  "健康",
+			Detail:  "HTTP状态码正常",
+			Latency: time.Since(start).Milliseconds(),
+		}
+	}
+
+	return Result{
+		Name:    "HTTP探测",
+		Target:  target,
+		Status:  "不健康",
+		Error:   "HTTP状态码异常",
+		Latency: time.Since(start).Milliseconds(),
+	}
 }

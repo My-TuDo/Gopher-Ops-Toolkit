@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/prober"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,11 +31,11 @@ to quickly create a Cobra application.`,
 		probeType := viper.GetString("health.type")
 
 		// 用户传递 type==all or type=="" 时，执行所有探测
-		if porbeType == "all" || probeType == "" {
+		if probeType == "all" || probeType == "" {
 		}
 
 		// 用户传递单项探测
-		p, exists := porber.Porbers[porbeType]
+		p, exists := prober.Probers[probeType]
 		if !exists {
 			fmt.Printf("错误：无效的探测类型 '%s'。支持 'tcp', 'http', 'all'。\n", probeType)
 			os.Exit(1)
@@ -53,7 +54,6 @@ to quickly create a Cobra application.`,
 		if res.Status != "健康" {
 			os.Exit(1)
 		}
-
 	},
 }
 

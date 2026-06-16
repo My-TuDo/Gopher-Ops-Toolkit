@@ -51,9 +51,23 @@ to quickly create a Cobra application.`,
 		if probeType == "all" {
 			fmt.Println("开始全项探测...")
 			allSuccess := true
-			for _, p := range prober.Probers {
-				res := p.Probe(target, timeout)
+			for name, p := range prober.Probers {
+				// 当 name == "tcp" 时，去 config 拿 health.target.tcp
+				// 当 name == "http" 时，去 config 拿 health.target.http
+				// 当 name == "dns" 时，去 config 拿 health.target.dns
+				targetKey := fmt.Sprintf("health.target.%s", name)
+				specificTarget := viper.GetString(targetKey)
+
+				// 如果用户在 config.yaml 中漏配置了某项目标，则给出提示并跳过或报错
+				if specificTarget == "" {
+					fmt.Printf("警告：检测到 [%s] 探测项，但配置文件中未找到 %s 的配置，已自动跳过该项探测！\n", name, targetKey)
+					continue
+				}
+
+				// 进行探测
+				res := p.Probe(specificTarget, timeout)
 				fmt.Println(res.String())
+
 				if res.Status != "健康" {
 					allSuccess = false
 				}

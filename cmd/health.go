@@ -36,7 +36,7 @@ to quickly create a Cobra application.`,
 			allSuccess := true
 			for name, p := range prober.Probers {
 				// 动态匹配
-				targetKey := fmt.Sprintf("health.target.%s", name)
+				targetKey := fmt.Sprintf("health.targets.%s", name)
 				specificTarget := viper.GetString(targetKey)
 
 				// 防御性编程：如果用户没有为某个探测类型传递目标地址，警告并跳过。

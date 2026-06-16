@@ -3,16 +3,25 @@ package prober
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type HTTPProber struct{}
 
 func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
-	target = "http://" + target
-
 	// 计算开始时间
 	start := time.Now()
+
+	// 先进行数据清洗
+	// 防止用户输入带有多余空格的地址导致探测失败
+	cleanedTarget := strings.TrimSpace(target)
+
+	// 判断是否以 "http://" 或 "https://" 开头，如果没有则默认加上 "http://"
+	if !strings.HasPrefix(cleanedTarget, "http://") && !strings.HasPrefix(cleanedTarget, "https://") {
+		// 默认使用 http 协议
+		cleanedTarget = "http://" + cleanedTarget
+	}
 
 	// 创建 HTTP 客户端
 	client := http.Client{}
@@ -22,11 +31,11 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	defer cancel()
 
 	// 创建 HTTP 请求
-	req, err := http.NewRequestWithContext(ctx, "GET", target, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", cleanedTarget, nil)
 	if err != nil {
 		return Result{
 			Name:    "HTTP探测",
-			Target:  target,
+			Target:  cleanedTarget,
 			Status:  "不健康",
 			Error:   err.Error(),
 			Latency: time.Since(start).Milliseconds(),
@@ -38,7 +47,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	if err != nil {
 		return Result{
 			Name:    "HTTP探测",
-			Target:  target,
+			Target:  cleanedTarget,
 			Status:  "不健康",
 			Error:   err.Error(),
 			Latency: time.Since(start).Milliseconds(),
@@ -50,7 +59,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		return Result{
 			Name:    "HTTP探测",
-			Target:  target,
+			Target:  cleanedTarget,
 			Status:  "健康",
 			Detail:  "HTTP状态码正常",
 			Latency: time.Since(start).Milliseconds(),
@@ -59,7 +68,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 
 	return Result{
 		Name:    "HTTP探测",
-		Target:  target,
+		Target:  cleanedTarget,
 		Status:  "不健康",
 		Error:   "HTTP状态码异常",
 		Latency: time.Since(start).Milliseconds(),

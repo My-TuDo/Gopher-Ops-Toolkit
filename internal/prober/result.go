@@ -31,4 +31,5 @@ type Prober interface {
 var Probers = map[string]Prober{
 	"tcp":  &TCPProber{},
 	"http": &HTTPProber{},
+	"dns":  &DNSProber{},
 }

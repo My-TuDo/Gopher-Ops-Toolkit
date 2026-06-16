@@ -32,6 +32,32 @@ to quickly create a Cobra application.`,
 
 		// 用户传递 type==all or type=="" 时，执行所有探测
 		if probeType == "all" || probeType == "" {
+			fmt.Println("执行所有探测...")
+			allSuccess := true
+			for name, p := range prober.Probers {
+				// 动态匹配
+				targetKey := fmt.Sprintf("health.target.%s", name)
+				specificTarget := viper.GetString(targetKey)
+
+				// 防御性编程：如果用户没有为某个探测类型传递目标地址，警告并跳过。
+				if specificTarget == "" {
+					fmt.Printf("警告：检测到 [%s] 探测项，但未在配置文件中找到 %s 的配置，已自动跳过\n", name, targetKey)
+					continue
+				}
+
+				// 派发专属 target 拨测
+				res := p.Probe(specificTarget, timeout)
+				fmt.Println(res.String())
+
+				if res.Status != "健康" {
+					allSuccess = false
+				}
+			}
+			if !allSuccess {
+				os.Exit(1)
+			}
+			fmt.Println("所有探测项均通过！")
+			return
 		}
 
 		// 用户传递单项探测

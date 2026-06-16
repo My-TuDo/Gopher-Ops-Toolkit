@@ -16,6 +16,7 @@ ops-toolkit/
 ├── internal/
 │   ├── output/         # 统一输出格式（JSON/表格）
 │   ├── prober/         # 健康检查探针
+│   │   ├── dns.go      # DNS 探测
 │   │   ├── http.go     # HTTP 探测
 │   │   ├── result.go   # 探测结果结构体
 │   │   └── tcp.go      # TCP 端口探测
@@ -27,3 +28,6 @@ ops-toolkit/
 ├── main.go             # CLI 入口（使用 cobra 库）
 ├── README.md
 └── reasonix.toml
+
+
+

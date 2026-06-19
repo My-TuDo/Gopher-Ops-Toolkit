@@ -18,31 +18,25 @@ var healthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "检查服务的健康状态",
 	Run: func(cmd *cobra.Command, args []string) {
-		// 不传入参数时，默认进行 `all` 探测
-
-		// 获得基础全局参数
 		timeout := viper.GetDuration("health.timeout")
-		probeType := viper.GetString("health.type")
+		probeType, _ := cmd.Flags().GetString("type")
+		allMode, _ := cmd.Flags().GetBool("all")
 
-		// 用户传递 type==all or type=="" 时，执行所有探测
-		if probeType == "all" || probeType == "" {
-			fmt.Println("执行所有探测...")
+		// ———————————————— --all 模式 ————————————————
+		if allMode {
+			fmt.Println("执行全部探测...")
+
 			allSuccess := true
 			for name, p := range prober.Probers {
-				// 动态匹配
-				targetKey := fmt.Sprintf("health.targets.%s", name)
+				targetKey := fmt.Sprintf("health.%s.target", name)
 				specificTarget := viper.GetString(targetKey)
 
-				// 防御性编程：如果用户没有为某个探测类型传递目标地址，警告并跳过。
 				if specificTarget == "" {
-					fmt.Printf("警告：检测到 [%s] 探测项，但未在配置文件中找到 %s 的配置，已自动跳过\n", name, targetKey)
+					fmt.Printf("跳过 %s 探测，未配置目标\n", name)
 					continue
 				}
-
-				// 派发专属 target 拨测
 				res := p.Probe(specificTarget, timeout)
 				fmt.Println(res.String())
-
 				if res.Status != "健康" {
 					allSuccess = false
 				}
@@ -50,30 +44,11 @@ var healthCmd = &cobra.Command{
 			if !allSuccess {
 				os.Exit(1)
 			}
-			fmt.Println("所有探测项均通过！")
+			fmt.Println("所有探测完成，服务状态正常")
 			return
 		}
 
-		// 用户传递单项探测
-		p, exists := prober.Probers[probeType]
-		if !exists {
-			fmt.Printf("错误：无效的探测类型 '%s'。支持 'tcp', 'http', 'all'。\n", probeType)
-			os.Exit(1)
-		}
-
-		// 防御性编程：如果用户没有传递target。
-		target := viper.GetString("health.target")
-		if target == "" {
-			fmt.Printf("错误：未指定目标地址。请使用 --target 参数指定目标地址。\n")
-			os.Exit(1)
-		}
-
-		// 执行单项探测
-		res := p.Probe(target, timeout)
-		fmt.Println(res.String())
-		if res.Status != "健康" {
-			os.Exit(1)
-		}
+		// ———————————————— 单项探测 ————————————————
 	},
 }
 

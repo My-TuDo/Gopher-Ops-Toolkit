@@ -28,6 +28,10 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 		domain = parts[0]     // 要查的 web 域名
 		dnsServer := parts[1] // 外部的 DNS 服务器地址
 
+		if !strings.Contains(dnsServer, ":") {
+			dnsServer = dnsServer + ":53" // 默认 DNS 服务器端口
+		}
+
 		// 把 go 默认的拨号行为，改成连指定的 DNS 服务器
 		resolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
 			dialer := net.Dialer{Timeout: timeout}

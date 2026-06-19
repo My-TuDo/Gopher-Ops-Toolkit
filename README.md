@@ -37,6 +37,13 @@ ops-toolkit/
 目前该项目仅做了 `version` 功能和 `health` 功能。
 
 未来大概是继续完善 `health` 的功能，同时作出一些优化：
-- 将无参数传入的默认探测项目由 `tcp` 改变为 `all` [ ]
+- 将无参数传入的默认探测项目由 `tcp` 改变为 `all` [完成]
+    - 目前正在不断的优化参数传递逻辑：
+        - 新增参数--all
+        - 新增子参数 --host --port,仅在--type=tcp 时可传递，否则报错
+        - 新增子参数 --url  --method --header,仅在 --type=http 时可传递，否则报错
+        - 新增子参数 --domain --record-type,仅在 --type=dns 时可传递，否则报错
+        - 删除参数 --target
 - 不断添加 `health` 的可探测指标 [ ]
 - 后续补充。
+- 其他功能暂未开启。

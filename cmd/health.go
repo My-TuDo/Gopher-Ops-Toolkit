@@ -17,12 +17,6 @@ import (
 var healthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "检查服务的健康状态",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// 不传入参数时，默认进行 `all` 探测
 
@@ -85,12 +79,26 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(healthCmd)
-	healthCmd.Flags().StringP("target", "", "localhost:3306", "服务目标地址")
-	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "连接超时时间")
-	healthCmd.Flags().StringP("type", "", "tcp", "探测类型（tcp|http|all）")
+
+	// 通用参数
+	healthCmd.Flags().BoolP("all", "a", false, "执行全部探测（从配置文件读取）")
+	healthCmd.Flags().StringP("type", "t", "tcp", "指定探测类型（tcp|http|dns)")
+	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "探测超时时间`")
+
+	// TCP 参数
+	healthCmd.Flags().StringP("host", "", "", "TCP 探测的主机地址")
+	healthCmd.Flags().StringP("port", "", "", "TCP 探测的端口号")
+
+	// HTTP 参数
+	healthCmd.Flags().StringP("url", "", "", "HTTP 探测的目标 URL")
+	healthCmd.Flags().StringP("method", "X", "GET", "HTTP 探测使用的请求方法")
+	healthCmd.Flags().StringArrayP("header", "H", nil, "HTTP 请求头")
+
+	// DNS 参数
+	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")
+	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型（A/AAAA/CNAME/MX/TXT）")
 
 	// 绑定参数到 viper
-	viper.BindPFlag("health.target", healthCmd.Flags().Lookup("target"))
 	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))
 	viper.BindPFlag("health.type", healthCmd.Flags().Lookup("type"))
 }

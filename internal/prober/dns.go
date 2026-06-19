@@ -15,7 +15,7 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 	start := time.Now()
 
 	// 设置动态超时控制
-	ctx, cancel := time.WithTimeout(context.Background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	// 初始化一个原生的 GO 解析器

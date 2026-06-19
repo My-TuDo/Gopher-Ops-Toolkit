@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"os"
 	"time"
 
@@ -49,6 +50,54 @@ var healthCmd = &cobra.Command{
 		}
 
 		// ———————————————— 单项探测 ————————————————
+		p, exists := prober.Probers[probeType]
+		if !exists {
+			fmt.Printf("[ERROR] 无效的探测类型 '%s'。支持的类型有: tcp, http, dns\n", probeType)
+			os.Exit(1)
+		}
+
+		// 根据类型组装 target
+		var target string
+		switch probeType {
+		case "tcp":
+			host, _ := cmd.Flags().GetString("host")
+			port, _ := cmd.Flags().GetString("port")
+			if host == "" || port == "" {
+				fmt.Println("[ERROR] TCP 探测需要 --host 和 --port 参数")
+				os.Exit(1)
+			}
+			target = net.JoinHostPort(host, port)
+
+		case "http":
+			url, _ := cmd.Flags().GetString("url")
+			method, _ := cmd.Flags().GetString("method")
+			headers, _ := cmd.Flags().GetStringArray("header")
+			if url == "" {
+				fmt.Println("[ERROR] HTTP 探测需要 --url 参数")
+				os.Exit(1)
+			}
+			// 目前先拼接 url, 后续再拓展 method 和 headers 的使用
+			target = url
+			_ = method
+			_ = headers
+
+		case "dns":
+			domain, _ := cmd.Flags().GetString("domain")
+			recordType, _ := cmd.Flags().GetString("record-type")
+			if domain == "" {
+				fmt.Println("[ERROR] DNS 探测需要 --domain 参数")
+				os.Exit(1)
+			}
+			// 把 recordType 拼接到 target 中，供 Probe 使用
+			target = fmt.Sprintf("%s:%s", domain, recordType)
+		}
+
+		res := p.Probe(target, timeout)
+		fmt.Println(res.String())
+		if res.Status != "健康" {
+			os.Exit(1)
+		}
+		fmt.Println("探测完成，服务状态正常")
 	},
 }
 

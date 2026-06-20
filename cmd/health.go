@@ -60,6 +60,15 @@ var healthCmd = &cobra.Command{
 		var target string
 		switch probeType {
 		case "tcp":
+			if cmd.Flags().Changed("url") {
+				fmt.Println("[ERROR] TCP 探测不支持 --url 参数")
+				os.Exit(1)
+			}
+			if cmd.Flags().Changed("domain") {
+				fmt.Println("[ERROR] TCP 探测不支持 --domain 参数")
+				os.Exit(1)
+			}
+
 			host, _ := cmd.Flags().GetString("host")
 			port, _ := cmd.Flags().GetString("port")
 			if host == "" || port == "" {
@@ -69,6 +78,15 @@ var healthCmd = &cobra.Command{
 			target = net.JoinHostPort(host, port)
 
 		case "http":
+			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
+				fmt.Println("[ERROR] HTTP 探测不支持 --host 或 --port 参数")
+				os.Exit(1)
+			}
+			if cmd.Flags().Changed("domain") {
+				fmt.Println("[ERROR] HTTP 探测不支持 --domain 参数")
+				os.Exit(1)
+			}
+
 			url, _ := cmd.Flags().GetString("url")
 			method, _ := cmd.Flags().GetString("method")
 			headers, _ := cmd.Flags().GetStringArray("header")
@@ -82,6 +100,15 @@ var healthCmd = &cobra.Command{
 			_ = headers
 
 		case "dns":
+			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
+				fmt.Println("[ERROR] DNS 探测不支持 --host 或 --port 参数")
+				os.Exit(1)
+			}
+			if cmd.Flags().Changed("url") {
+				fmt.Println("[ERROR] DNS 探测不支持 --url 参数")
+				os.Exit(1)
+			}
+
 			domain, _ := cmd.Flags().GetString("domain")
 			recordType, _ := cmd.Flags().GetString("record-type")
 			if domain == "" {

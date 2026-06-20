@@ -29,7 +29,7 @@ var healthCmd = &cobra.Command{
 
 			allSuccess := true
 			for name, p := range prober.Probers {
-				targetKey := fmt.Sprintf("health.%s.target", name)
+				targetKey := fmt.Sprintf("health.targets.%s", name)
 				specificTarget := viper.GetString(targetKey)
 
 				if specificTarget == "" {
@@ -45,7 +45,9 @@ var healthCmd = &cobra.Command{
 			if !allSuccess {
 				os.Exit(1)
 			}
-			fmt.Println("所有探测完成，服务状态正常")
+			if allSuccess {
+				fmt.Println("所有探测完成，服务状态正常")
+			}
 			return
 		}
 
@@ -116,7 +118,7 @@ var healthCmd = &cobra.Command{
 				os.Exit(1)
 			}
 			// 把 recordType 拼接到 target 中，供 Probe 使用
-			target = fmt.Sprintf("%s:%s", domain, recordType)
+			target = fmt.Sprintf("%s@%s", domain, recordType)
 		}
 
 		res := p.Probe(target, timeout)
@@ -133,16 +135,16 @@ func init() {
 
 	// 通用参数
 	healthCmd.Flags().BoolP("all", "a", false, "执行全部探测（从配置文件读取）")
-	healthCmd.Flags().StringP("type", "t", "tcp", "指定探测类型（tcp|http|dns)")
+	healthCmd.Flags().StringP("type", "t", "tcp", "指定探测类型(tcp|http|dns)")
 	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "探测超时时间`")
 
 	// TCP 参数
-	healthCmd.Flags().StringP("host", "", "", "TCP 探测的主机地址")
-	healthCmd.Flags().StringP("port", "", "", "TCP 探测的端口号")
+	healthCmd.Flags().StringP("host", "", "localhost", "TCP 探测的主机地址")
+	healthCmd.Flags().StringP("port", "", "8080", "TCP 探测的端口号")
 
 	// HTTP 参数
 	healthCmd.Flags().StringP("url", "", "", "HTTP 探测的目标 URL")
-	healthCmd.Flags().StringP("method", "X", "GET", "HTTP 探测使用的请求方法")
+	healthCmd.Flags().StringP("method", "m", "GET", "HTTP 探测使用的请求方法")
 	healthCmd.Flags().StringArrayP("header", "H", nil, "HTTP 请求头")
 
 	// DNS 参数

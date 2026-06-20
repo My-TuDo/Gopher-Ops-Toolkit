@@ -4,6 +4,44 @@
 
 ---
 
+## 快速开始
+
+### 构建
+
+```bash 
+go build -o ops-toolkit
+```
+
+### 配置
+编辑 `configs/config.yaml`，或通过 `--config` 指定自定义路径。
+
+### 使用指南
+
+- **`health`——健康检查**
+
+```bash
+# 执行全部探测（从配置文件读取）
+ops-toolkit health --all
+
+# TCP 端口探测
+ops-toolkit health --type tcp --host example.com --port 3306
+
+# HTTP 服务探测
+ops-toolkit health --type http --url http://example.com/health
+
+# DNS 解析探测
+ops-toolkit health --type dns --domain baidu.com --reacord-type A
+```
+
+- **`version`——版本信息**
+```bash
+ops-toolkit version
+```
+
+---
+
+## 项目结构
+
 ops-toolkit/
 ├── cmd/
 │   ├── exec.go         # 远程命令执行
@@ -30,20 +68,3 @@ ops-toolkit/
 ├── README.md
 └── reasonix.toml
 
----
-
-## 对项目未来的计划
-
-目前该项目仅做了 `version` 功能和 `health` 功能。
-
-未来大概是继续完善 `health` 的功能，同时作出一些优化：
-- 将无参数传入的默认探测项目由 `tcp` 改变为 `all` [完成]
-    - 目前正在不断的优化参数传递逻辑：
-        - 新增参数--all
-        - 新增子参数 --host --port,仅在--type=tcp 时可传递，否则报错
-        - 新增子参数 --url  --method --header,仅在 --type=http 时可传递，否则报错
-        - 新增子参数 --domain --record-type,仅在 --type=dns 时可传递，否则报错
-        - 删除参数 --target
-- 不断添加 `health` 的可探测指标 [ ]
-- 后续补充。
-- 其他功能暂未开启。

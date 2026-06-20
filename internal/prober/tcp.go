@@ -14,7 +14,7 @@ type TCPProber struct{}
 func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	// 记录开始时间
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(context.background(), timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
 	// 分离主机号和端口号
@@ -66,7 +66,7 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	_ = conn.SetReadDeadline(time.Now().Add(300 * time.Millisecond)) // 设置读取超时
 	buf := make([]byte, 256)
 	if n, err := conn.Read(buf); err == nil && n > 0 {
-		banner = sanitizeBanner(buf[:n])
+		banner = sanitizeBanner(string(buf[:n]))
 	}
 
 	detail := fmt.Sprintf("端口开放 (DNS: %dms, 握手: %dms)", dnsDuration, handshakeDuration)

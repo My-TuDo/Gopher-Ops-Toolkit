@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -85,5 +86,10 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 
 // 过滤不可见字符，保留可读性
 func sanitizeBanner(s string) string {
-	return s
+	// 替换换行和制表符为空格，丢弃其他不可见字符
+	s = strings.ReplaceAll(s, "\r\n", " ")
+	s = strings.ReplaceAll(s, "\n", " ")
+	s = strings.ReplaceAll(s, "\r", " ")
+	s = strings.ReplaceAll(s, "\t", " ")
+	return strings.TrimSpace(s)
 }

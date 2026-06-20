@@ -10,7 +10,8 @@
   - `--url` / `--method` / `--header` — 仅在 `--type http` 时可用
   - `--domain` / `--record-type` — 仅在 `--type dns` 时可用
 - [x] 删除旧的 `--target` 参数
-- [ ] 完善 TCP 探测（握手耗时分解 + Banner 读取）
+- [x] 完善 TCP 探测（握手耗时分解 + Banner 读取）
+- [ ] 完善 TCP 探测 (并发探测，取耗时平均数)
 - [ ] 新增更多探测指标（Ping 等）
 
 ## 计划中

@@ -138,6 +138,8 @@ func init() {
 	healthCmd.Flags().BoolP("all", "a", false, "执行全部探测（从配置文件读取）")
 	healthCmd.Flags().StringP("type", "t", "tcp", "指定探测类型(tcp|http|dns)")
 	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "探测超时时间`")
+	// 新增 --rounds 参数
+	healthCmd.Flags().IntP("rounds", "r", 1, "探测轮数，默认为 1")
 
 	// TCP 参数
 	healthCmd.Flags().StringP("host", "", "localhost", "TCP 探测的主机地址")
@@ -152,11 +154,8 @@ func init() {
 	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")
 	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型（A/AAAA/CNAME/MX/TXT）")
 
-	// 新增 --rounds 参数
-	healthCmd.Flags().IntP("rounds", "r", 1, "探测轮数，默认为 1")
-
 	// 绑定参数到 viper
 	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))
 	viper.BindPFlag("health.type", healthCmd.Flags().Lookup("type"))
-
+	viper.BindPFlag("health.rounds", healthCmd.Flags().Lookup("rounds"))
 }

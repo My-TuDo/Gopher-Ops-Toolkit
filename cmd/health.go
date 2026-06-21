@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/prober"
@@ -97,10 +98,28 @@ var healthCmd = &cobra.Command{
 				fmt.Println("[ERROR] HTTP 探测需要 --url 参数")
 				os.Exit(1)
 			}
-			// 目前先拼接 url, 后续再拓展 method 和 headers 的使用
-			target = url
-			_ = method
-			_ = headers
+
+			// 将 []string 解析为 map[string]string
+			headerMap := make(map[string]string)
+			for _, h := range headers {
+				if k, v, found := strings.Cut(h, ":"); found {
+					headerMap[strings.TrimSpace(k)] = strings.TrimSpace(v)
+				}
+			}
+
+			// 构造带参数的 HTTPProber，不走 Probers 注册表
+			httpProber := prober.HTTPProber{
+				Method:  method,
+				Headers: headerMap,
+			}
+			// 直接调用 MultiRoundProbe，传入 httpProber 实例，不走通用调用
+			res := prober.MultiRoundProbe(httpProber, url, timeout, rounds)
+			fmt.Println(res.String())
+			if res.Status != "健康" {
+				os.Exit(1)
+			}
+			fmt.Println("探测完成，服务状态正常")
+			return
 
 		case "dns":
 			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {

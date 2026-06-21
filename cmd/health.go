@@ -22,6 +22,7 @@ var healthCmd = &cobra.Command{
 		timeout := viper.GetDuration("health.timeout")
 		probeType, _ := cmd.Flags().GetString("type")
 		allMode, _ := cmd.Flags().GetBool("all")
+		rounds, _ := cmd.Flags().GetInt("rounds")
 
 		// ———————————————— --all 模式 ————————————————
 		if allMode {
@@ -36,7 +37,7 @@ var healthCmd = &cobra.Command{
 					fmt.Printf("跳过 %s 探测，未配置目标\n", name)
 					continue
 				}
-				res := p.Probe(specificTarget, timeout)
+				res := prober.MultiRoundProbe(p, specificTarget, timeout, rounds)
 				fmt.Println(res.String())
 				if res.Status != "健康" {
 					allSuccess = false
@@ -121,7 +122,7 @@ var healthCmd = &cobra.Command{
 			target = fmt.Sprintf("%s@%s", domain, recordType)
 		}
 
-		res := p.Probe(target, timeout)
+		res := prober.MultiRoundProbe(p, target, timeout, rounds)
 		fmt.Println(res.String())
 		if res.Status != "健康" {
 			os.Exit(1)
@@ -151,7 +152,11 @@ func init() {
 	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")
 	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型（A/AAAA/CNAME/MX/TXT）")
 
+	// 新增 --rounds 参数
+	healthCmd.Flags().IntP("rounds", "r", 1, "探测轮数，默认为 1")
+
 	// 绑定参数到 viper
 	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))
 	viper.BindPFlag("health.type", healthCmd.Flags().Lookup("type"))
+
 }

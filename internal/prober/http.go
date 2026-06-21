@@ -7,7 +7,10 @@ import (
 	"time"
 )
 
-type HTTPProber struct{}
+type HTTPProber struct {
+	Method  string            // HTTP 方法，如 GET、POST 等
+	Headers map[string]string // 可选的 HTTP 头部信息
+}
 
 func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 计算开始时间
@@ -30,8 +33,14 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 
+	// h.Method 如果没有设置，默认使用 GET 方法
+	method := h.Method
+	if method == "" {
+		method = "GET"
+	}
+
 	// 创建 HTTP 请求
-	req, err := http.NewRequestWithContext(ctx, "GET", cleanedTarget, nil)
+	req, err := http.NewRequestWithContext(ctx, method, cleanedTarget, nil)
 	if err != nil {
 		return Result{
 			Name:    "HTTP探测",
@@ -40,6 +49,11 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 			Error:   err.Error(),
 			Latency: time.Since(start).Milliseconds(),
 		}
+	}
+
+	// 设置请求头
+	for key, value := range h.Headers {
+		req.Header.Set(key, value)
 	}
 
 	// 发送 HTTP 请求

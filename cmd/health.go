@@ -19,10 +19,10 @@ var healthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "检查服务的健康状态",
 	Run: func(cmd *cobra.Command, args []string) {
+		rounds := viper.GetInt("health.rounds")
 		timeout := viper.GetDuration("health.timeout")
 		probeType, _ := cmd.Flags().GetString("type")
 		allMode, _ := cmd.Flags().GetBool("all")
-		rounds, _ := cmd.Flags().GetInt("rounds")
 
 		// ———————————————— --all 模式 ————————————————
 		if allMode {
@@ -152,7 +152,7 @@ func init() {
 
 	// DNS 参数
 	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")
-	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型（A/AAAA/CNAME/MX/TXT）")
+	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型(A/AAAA/CNAME/MX/TXT)")
 
 	// 绑定参数到 viper
 	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))

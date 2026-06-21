@@ -94,6 +94,7 @@ var healthCmd = &cobra.Command{
 			url, _ := cmd.Flags().GetString("url")
 			method, _ := cmd.Flags().GetString("method")
 			headers, _ := cmd.Flags().GetStringArray("header")
+			keyword, _ := cmd.Flags().GetString("keyword")
 			if url == "" {
 				fmt.Println("[ERROR] HTTP 探测需要 --url 参数")
 				os.Exit(1)
@@ -111,6 +112,7 @@ var healthCmd = &cobra.Command{
 			httpProber := prober.HTTPProber{
 				Method:  method,
 				Headers: headerMap,
+				Keyword: keyword,
 			}
 			// 直接调用 MultiRoundProbe，传入 httpProber 实例，不走通用调用
 			res := prober.MultiRoundProbe(httpProber, url, timeout, rounds)
@@ -168,6 +170,7 @@ func init() {
 	healthCmd.Flags().StringP("url", "", "", "HTTP 探测的目标 URL")
 	healthCmd.Flags().StringP("method", "m", "GET", "HTTP 探测使用的请求方法")
 	healthCmd.Flags().StringArrayP("header", "H", nil, "HTTP 请求头")
+	healthCmd.Flags().StringP("keyword", "k", "", "HTTP 响应体中期望包含的关键字")
 
 	// DNS 参数
 	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")

@@ -2,6 +2,8 @@ package prober
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -10,6 +12,7 @@ import (
 type HTTPProber struct {
 	Method  string            // HTTP 方法，如 GET、POST 等
 	Headers map[string]string // 可选的 HTTP 头部信息
+	Keyword string            // 期望 body 中包含的关键字
 }
 
 func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
@@ -71,6 +74,19 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 
 	// 判断 HTTP 状态码
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		// 如果有关键字检测需求，读 body 检查
+		if h.Keyword != "" {
+			body, _ := io.ReadAll(resp.Body)
+			if !strings.Contains(string(body), h.Keyword) {
+				return Result{
+					Name:    "HTTP探测",
+					Target:  cleanedTarget,
+					Status:  "不健康",
+					Error:   fmt.Sprintf("响应体中未找到关键字 '%s'", h.Keyword),
+					Latency: time.Since(start).Milliseconds(),
+				}
+			}
+		}
 		return Result{
 			Name:    "HTTP探测",
 			Target:  cleanedTarget,

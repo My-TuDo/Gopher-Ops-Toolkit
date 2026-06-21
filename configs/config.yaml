@@ -1,6 +1,7 @@
 health:
     type: tcp
     timeout: 5s
+    rounds: 1
     targets:
         tcp: "localhost:8080"
         http: "http://localhost:8080"

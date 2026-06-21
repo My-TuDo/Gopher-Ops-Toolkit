@@ -28,7 +28,10 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		// 默认使用 http 协议
 		cleanedTarget = "http://" + cleanedTarget
 	}
-
+	bash := Result{
+		Name:   "HTTP探测",
+		Target: target,
+	}
 	// 创建 HTTP 客户端
 	client := http.Client{}
 
@@ -45,13 +48,10 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 创建 HTTP 请求
 	req, err := http.NewRequestWithContext(ctx, method, cleanedTarget, nil)
 	if err != nil {
-		return Result{
-			Name:    "HTTP探测",
-			Target:  cleanedTarget,
-			Status:  "不健康",
-			Error:   err.Error(),
-			Latency: time.Since(start).Milliseconds(),
-		}
+		bash.Status = "不健康"
+		bash.Error = fmt.Sprintf("创建 HTTP 请求失败: %v", err)
+		bash.Latency = time.Since(start).Milliseconds()
+		return bash
 	}
 
 	// 设置请求头
@@ -62,13 +62,10 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 发送 HTTP 请求
 	resp, err := client.Do(req)
 	if err != nil {
-		return Result{
-			Name:    "HTTP探测",
-			Target:  cleanedTarget,
-			Status:  "不健康",
-			Error:   err.Error(),
-			Latency: time.Since(start).Milliseconds(),
-		}
+		bash.Status = "不健康"
+		bash.Error = fmt.Sprintf("发送 HTTP 请求失败: %v", err)
+		bash.Latency = time.Since(start).Milliseconds()
+		return bash
 	}
 	defer resp.Body.Close()
 
@@ -78,29 +75,20 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		if h.Keyword != "" {
 			body, _ := io.ReadAll(resp.Body)
 			if !strings.Contains(string(body), h.Keyword) {
-				return Result{
-					Name:    "HTTP探测",
-					Target:  cleanedTarget,
-					Status:  "不健康",
-					Error:   fmt.Sprintf("响应体中未找到关键字 '%s'", h.Keyword),
-					Latency: time.Since(start).Milliseconds(),
-				}
+				bash.Status = "不健康"
+				bash.Error = fmt.Sprintf("HTTP 响应体不包含关键字: %s", h.Keyword)
+				bash.Latency = time.Since(start).Milliseconds()
+				return bash
 			}
 		}
-		return Result{
-			Name:    "HTTP探测",
-			Target:  cleanedTarget,
-			Status:  "健康",
-			Detail:  "HTTP状态码正常",
-			Latency: time.Since(start).Milliseconds(),
-		}
+		bash.Status = "健康"
+		bash.Detail = fmt.Sprintf("HTTP 状态码: %d", resp.StatusCode)
+		bash.Latency = time.Since(start).Milliseconds()
+		return bash
 	}
 
-	return Result{
-		Name:    "HTTP探测",
-		Target:  cleanedTarget,
-		Status:  "不健康",
-		Error:   "HTTP状态码异常",
-		Latency: time.Since(start).Milliseconds(),
-	}
+	bash.Status = "不健康"
+	bash.Error = fmt.Sprintf("HTTP 状态码异常: %d", resp.StatusCode)
+	bash.Latency = time.Since(start).Milliseconds()
+	return bash
 }

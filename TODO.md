@@ -23,17 +23,28 @@
   - [x] 使用 `--method` 参数，支持 POST/PUT/HEAD 等
   - [x] 使用 `--header` 参数，支持自定义请求头
   - [x] 增加响应体检测（根据关键字判断健康）
-  - [ ] 记录 HTTP 状态码到 Detail（如 `200 OK`）
-  - [ ] 记录响应大小
+  - [x] 记录 HTTP 状态码到 Detail（如 `200 OK`）
+  - [x] 记录响应大小
+
+- [ ] **health.go 重构：switch 职责分离**
+  - 将 switch 缩减为：**参数校验 + 返回 (probeInstance, target) 二元组**
+  - 不再在 switch 内部执行 MultiRoundProbe 和输出
+  - switch 之后只保留一行通用调用：
+    ```go
+    res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
+    fmt.Println(res.String())
+    ```
+  - 提取 `buildProber()` 工厂函数（可选，switch 不挪出去也能达到分离效果）
 
 - [ ] **DNS 探针增强**
+  - 给 `DNSProber` 加字段（`RecordType`, `DNSServer`），类似 HTTP 的 struct 方案
   - 根据 `--record-type` 查询不同记录类型：
     - `A` → `LookupHost`（已有）
     - `MX` → `LookupMX`
     - `NS` → `LookupNS`
     - `CNAME` → `LookupCNAME`
     - `TXT` → `LookupTXT`
-  - 支持外置 DNS 服务器查询（现有 `@` 语法）
+  - 用 `--dns-server` 替代现有的 `@` 语法，消除分隔符冲突
 
 - [ ] **修复 MultiRoundProbe 重复调用问题**
   - 当前 `firstRes := p.Probe(target, timeout)` 额外多跑了一次探测

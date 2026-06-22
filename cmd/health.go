@@ -61,6 +61,7 @@ var healthCmd = &cobra.Command{
 		}
 
 		// 根据类型组装 target
+		var probeInstance prober.Prober // 用于存储带参数的探针实例（如 HTTPProber）
 		var target string
 		switch probeType {
 		case "tcp":
@@ -80,6 +81,7 @@ var healthCmd = &cobra.Command{
 				os.Exit(1)
 			}
 			target = net.JoinHostPort(host, port)
+			probeInstance = prober.Probers["tcp"]
 
 		case "http":
 			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
@@ -107,21 +109,13 @@ var healthCmd = &cobra.Command{
 					headerMap[strings.TrimSpace(k)] = strings.TrimSpace(v)
 				}
 			}
-
+			target = url
 			// 构造带参数的 HTTPProber，不走 Probers 注册表
-			httpProber := prober.HTTPProber{
+			probeInstance := &prober.HTTPProber{
 				Method:  method,
 				Headers: headerMap,
 				Keyword: keyword,
 			}
-			// 直接调用 MultiRoundProbe，传入 httpProber 实例，不走通用调用
-			res := prober.MultiRoundProbe(httpProber, url, timeout, rounds)
-			fmt.Println(res.String())
-			if res.Status != "健康" {
-				os.Exit(1)
-			}
-			fmt.Println("探测完成，服务状态正常")
-			return
 
 		case "dns":
 			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
@@ -143,7 +137,7 @@ var healthCmd = &cobra.Command{
 			target = fmt.Sprintf("%s@%s", domain, recordType)
 		}
 
-		res := prober.MultiRoundProbe(p, target, timeout, rounds)
+		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
 		fmt.Println(res.String())
 		if res.Status != "健康" {
 			os.Exit(1)

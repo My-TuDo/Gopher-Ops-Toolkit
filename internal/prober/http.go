@@ -81,7 +81,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 				bash.Latency = time.Since(start).Milliseconds()
 				return bash
 			}
-			bash.Detail += fmt.Sprintf("| 响应体大小：%d 字节", len(body))
+			bash.Detail += fmt.Sprintf(" | 响应体大小：%d 字节", len(body))
 		}
 		bash.Status = "健康"
 		bash.Latency = time.Since(start).Milliseconds()

@@ -71,6 +71,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 
 	// 判断 HTTP 状态码
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		bash.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 		// 如果有关键字检测需求，读 body 检查
 		if h.Keyword != "" {
 			body, _ := io.ReadAll(resp.Body)
@@ -80,9 +81,9 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 				bash.Latency = time.Since(start).Milliseconds()
 				return bash
 			}
+			bash.Detail += fmt.Sprintf("| 响应体大小：%d 字节", len(body))
 		}
 		bash.Status = "健康"
-		bash.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 		bash.Latency = time.Since(start).Milliseconds()
 		return bash
 	}

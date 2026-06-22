@@ -82,13 +82,13 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 			}
 		}
 		bash.Status = "健康"
-		bash.Detail = fmt.Sprintf("HTTP 状态码: %d", resp.StatusCode)
+		bash.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 		bash.Latency = time.Since(start).Milliseconds()
 		return bash
 	}
 
 	bash.Status = "不健康"
-	bash.Error = fmt.Sprintf("HTTP 状态码异常: %d", resp.StatusCode)
+	bash.Error = fmt.Sprintf("HTTP 状态码异常: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 	bash.Latency = time.Since(start).Milliseconds()
 	return bash
 }

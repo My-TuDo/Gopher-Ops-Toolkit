@@ -54,12 +54,6 @@ var healthCmd = &cobra.Command{
 		}
 
 		// ———————————————— 单项探测 ————————————————
-		p, exists := prober.Probers[probeType]
-		if !exists {
-			fmt.Printf("[ERROR] 无效的探测类型 '%s'。支持的类型有: tcp, http, dns\n", probeType)
-			os.Exit(1)
-		}
-
 		// 根据类型组装 target
 		var probeInstance prober.Prober // 用于存储带参数的探针实例（如 HTTPProber）
 		var target string
@@ -111,7 +105,7 @@ var healthCmd = &cobra.Command{
 			}
 			target = url
 			// 构造带参数的 HTTPProber，不走 Probers 注册表
-			probeInstance := &prober.HTTPProber{
+			probeInstance = &prober.HTTPProber{
 				Method:  method,
 				Headers: headerMap,
 				Keyword: keyword,
@@ -135,8 +129,11 @@ var healthCmd = &cobra.Command{
 			}
 			// 把 recordType 拼接到 target 中，供 Probe 使用
 			target = fmt.Sprintf("%s@%s", domain, recordType)
-		}
 
+		default:
+			fmt.Printf("[ERROR] 不支持的探测类型: '%s',支持的类型有: tcp, http, dns\n", probeType)
+			os.Exit(1)
+		}
 		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
 		fmt.Println(res.String())
 		if res.Status != "健康" {

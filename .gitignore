@@ -27,6 +27,13 @@ go.work.sum
 # env file
 .env
 
+# Personal learning notes (not tracked by git)
+NOTES.md
+
+# reasonix tools
+.reasonix/
+reasonix.toml
+
 # Editor/IDE
 # .idea/
 # .vscode/

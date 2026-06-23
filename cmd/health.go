@@ -123,12 +123,17 @@ var healthCmd = &cobra.Command{
 
 			domain, _ := cmd.Flags().GetString("domain")
 			recordType, _ := cmd.Flags().GetString("record-type")
+			dnsServer, _ := cmd.Flags().GetString("dns-server")
 			if domain == "" {
 				fmt.Println("[ERROR] DNS 探测需要 --domain 参数")
 				os.Exit(1)
 			}
 			// 把 recordType 拼接到 target 中，供 Probe 使用
-			target = fmt.Sprintf("%s@%s", domain, recordType)
+			target = domain
+			probeInstance = &prober.DNSProber{
+				RecordType: recordType,
+				DNSServer:  dnsServer,
+			}
 
 		default:
 			fmt.Printf("[ERROR] 不支持的探测类型: '%s',支持的类型有: tcp, http, dns\n", probeType)
@@ -166,6 +171,7 @@ func init() {
 	// DNS 参数
 	healthCmd.Flags().StringP("domain", "", "", "DNS 探测的域名")
 	healthCmd.Flags().StringP("record-type", "", "A", "DNS 记录类型(A/AAAA/CNAME/MX/TXT)")
+	healthCmd.Flags().StringP("dns-server", "", "", "DNS 服务器地址")
 
 	// 绑定参数到 viper
 	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))

@@ -11,6 +11,10 @@ import (
 // 实现 TCP 端口探测的结构体
 type TCPProber struct{}
 
+func (t TCPProber) Name() string {
+	return "TCP探测"
+}
+
 func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	// 记录开始时间
 	start := time.Now()
@@ -21,7 +25,7 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	host, port, err := net.SplitHostPort(target)
 	if err != nil {
 		return Result{
-			Name:    "TCP探测",
+			Name:    t.Name(),
 			Target:  target,
 			Status:  "不健康",
 			Error:   fmt.Sprintf("目标地址格式错误: %v", err),
@@ -36,7 +40,7 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	dnsDuration := time.Since(dnsStart).Milliseconds()
 	if err != nil {
 		return Result{
-			Name:    "TCP探测",
+			Name:    t.Name(),
 			Target:  target,
 			Status:  "不健康",
 			Error:   fmt.Sprintf("DNS 解析失败: %v", err),
@@ -52,7 +56,7 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	totalDuration := time.Since(start).Milliseconds()
 	if err != nil {
 		return Result{
-			Name:    "TCP探测",
+			Name:    t.Name(),
 			Target:  target,
 			Status:  "不健康",
 			Error:   fmt.Sprintf("TCP 握手失败: %v", err),
@@ -76,7 +80,7 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 
 	// 连接成功
 	return Result{
-		Name:    "TCP探测",
+		Name:    t.Name(),
 		Target:  target,
 		Status:  "健康",
 		Detail:  detail,

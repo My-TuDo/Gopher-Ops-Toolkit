@@ -13,6 +13,10 @@ type DNSProber struct {
 	DNSServer  string // 可选参数，指定 DNS 服务器地址，如 8.8.8.8
 }
 
+func (d DNSProber) Name() string {
+	return "DNS探测"
+}
+
 func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 	// 开始计时
 	start := time.Now()
@@ -98,7 +102,7 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 
 	default:
 		return Result{
-			Name:    "DNS 探测",
+			Name:    d.Name(),
 			Target:  target,
 			Status:  "不健康",
 			Error:   fmt.Sprintf("不支持的 DNS 记录类型: %s", d.RecordType),
@@ -109,7 +113,7 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 	elapsed := time.Since(start).Milliseconds()
 	if err != nil {
 		return Result{
-			Name:    "DNS 探测",
+			Name:    d.Name(),
 			Target:  target,
 			Status:  "不健康",
 			Error:   err.Error(),
@@ -117,7 +121,7 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 		}
 	}
 	return Result{
-		Name:    "DNS探测",
+		Name:    d.Name(),
 		Target:  target,
 		Status:  "健康",
 		Latency: elapsed,

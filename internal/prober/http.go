@@ -15,6 +15,10 @@ type HTTPProber struct {
 	Keyword string            // 期望 body 中包含的关键字
 }
 
+func (h HTTPProber) Name() string {
+	return "HTTP探测"
+}
+
 func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 计算开始时间
 	start := time.Now()
@@ -29,7 +33,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		cleanedTarget = "http://" + cleanedTarget
 	}
 	bash := Result{
-		Name:   "HTTP探测",
+		Name:   h.Name(),
 		Target: target,
 	}
 	// 创建 HTTP 客户端

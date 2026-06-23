@@ -25,12 +25,12 @@ var healthCmd = &cobra.Command{
 		timeout := viper.GetDuration("health.timeout")
 		probeType, _ := cmd.Flags().GetString("type")
 		allMode, _ := cmd.Flags().GetBool("all")
+		var results []prober.Result // 用于存储探测结果
 
 		// ———————————————— --all 模式 ————————————————
 		if allMode {
 			fmt.Println("执行全部探测...")
 
-			var results []prober.Result
 			allSuccess := true
 			for name, p := range prober.Probers {
 				targetKey := fmt.Sprintf("health.targets.%s", name)
@@ -147,7 +147,8 @@ var healthCmd = &cobra.Command{
 		}
 
 		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
-		fmt.Println(res.String())
+		results = append(results, res)
+		output.RenderResultTable(results)
 		if res.Status != "健康" {
 			os.Exit(1)
 		}

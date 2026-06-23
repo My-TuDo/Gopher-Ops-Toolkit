@@ -46,7 +46,7 @@
     - `TXT` → `LookupTXT`
   - 用 `--dns-server` 替代现有的 `@` 语法，消除分隔符冲突
 
-- [ ] **修复 MultiRoundProbe 重复调用问题**
+- [x] **修复 MultiRoundProbe 重复调用问题**
   - 当前 `firstRes := p.Probe(target, timeout)` 额外多跑了一次探测
   - 应该用第一次成功的结果或者传 Name 进去
 

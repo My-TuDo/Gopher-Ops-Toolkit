@@ -23,6 +23,23 @@ func RenderResultTable(results []prober.Result) {
 		termWidth = w
 	}
 
+	// —————— 窄终端回退到行输出 ——————
+	if termWidth < 90 {
+		for _, res := range results {
+			latencyStr := "—"
+			if res.Latency > 0 {
+				latencyStr = strconv.FormatInt(res.Latency, 10) + "ms"
+			}
+			detailOrError := res.Detail
+			if res.Error != "" {
+				detailOrError = res.Error
+			}
+			fmt.Printf("%s | %s | %s | %s\n → %s\n\n",
+				res.Name, res.Target, res.Status, latencyStr, detailOrError)
+		}
+		return
+	}
+
 	// 详情列宽度 = 总宽 - 其他列固定宽 - 边框
 	detailWidth := termWidth - 8 - 26 - 6 - 8 - 14
 	if detailWidth > 60 {

@@ -67,9 +67,10 @@
   - 作为前置连通性检查
   - all 模式下自动从 tcp target 推导主机
 
-- [ ] **输出格式化**
-  - 支持 `--output json` 输出 JSON 格式
-  - 支持 `--output table` 输出表格格式
+- [x] **输出格式化**
+  - [x] 表格输出（始终以表格形式展示结果，无 `--output` 参数切换）
+  - [ ] 支持 `--output table` 输出表格格式
+  - [ ] 支持 `--output json` 输出 JSON 格式
 
 - [ ] **健康阈值可配置**
   - 允许用户设置延迟阈值（如 `--max-latency 500ms`）

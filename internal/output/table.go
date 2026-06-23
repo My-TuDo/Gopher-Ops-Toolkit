@@ -45,7 +45,7 @@ func RenderResultTable(results []prober.Result) {
 			MaxWidth: termWidth,
 			Row: tw.CellConfig{
 				Formatting: tw.CellFormatting{
-					AutoWrap: tw.WrapTruncate, // 单元格内自动换行
+					AutoWrap: tw.WrapNormal, // 单元格内自动换行
 				},
 				Alignment: tw.CellAlignment{
 					Global: tw.AlignLeft, // 全局左对齐
@@ -72,6 +72,11 @@ func RenderResultTable(results []prober.Result) {
 		detailOrError := res.Detail
 		if res.Error != "" {
 			detailOrError = res.Error
+		}
+
+		// 超长文本截断处理
+		if len(detailOrError) > 80 {
+			detailOrError = string([]rune(detailOrError)[:80]) + "..."
 		}
 
 		row := []string{res.Name, res.Target, res.Status, latencyStr, detailOrError}

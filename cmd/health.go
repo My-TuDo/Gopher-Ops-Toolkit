@@ -128,7 +128,7 @@ var healthCmd = &cobra.Command{
 				fmt.Println("[ERROR] DNS 探测需要 --domain 参数")
 				os.Exit(1)
 			}
-			// 把 recordType 拼接到 target 中，供 Probe 使用
+
 			target = domain
 			probeInstance = &prober.DNSProber{
 				RecordType: recordType,
@@ -139,6 +139,7 @@ var healthCmd = &cobra.Command{
 			fmt.Printf("[ERROR] 不支持的探测类型: '%s',支持的类型有: tcp, http, dns\n", probeType)
 			os.Exit(1)
 		}
+
 		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
 		fmt.Println(res.String())
 		if res.Status != "健康" {

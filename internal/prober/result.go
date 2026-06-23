@@ -20,7 +20,7 @@ func (r Result) String() string {
 	if r.Error != "" {
 		return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 错误: %s", r.Name, r.Target, r.Status, r.Error)
 	}
-	return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s", r.Name, r.Target, r.Status)
+	return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 详情：%s", r.Name, r.Target, r.Status, r.Detail)
 }
 
 // MultiRoundProbe 对探针执行多轮并发探测，返回平均值

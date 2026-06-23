@@ -61,10 +61,10 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 		}
 	}
 
-	firstRes := p.Probe(target, timeout)
+	name := p.Name()
 	if successCount == 0 {
 		return Result{
-			Name:    firstRes.Name,
+			Name:    name,
 			Target:  target,
 			Status:  "不健康",
 			Error:   fmt.Sprintf("%d 轮探测全部失败", rounds),
@@ -73,7 +73,7 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 	}
 
 	return Result{
-		Name:    firstRes.Name,
+		Name:    name,
 		Target:  target,
 		Status:  "健康",
 		Detail:  fmt.Sprintf("%d 轮探测成功，平均延迟: %d ms", successCount, totalLatency/int64(successCount)),
@@ -84,6 +84,7 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 // 定义一个接口，所有探测器都实现这个接口
 type Prober interface {
 	Probe(target string, timeout time.Duration) Result
+	Name() string
 }
 
 // 全局注册表

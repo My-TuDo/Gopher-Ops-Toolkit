@@ -26,7 +26,7 @@
   - [x] 记录 HTTP 状态码到 Detail（如 `200 OK`）
   - [x] 记录响应大小
 
-- [ ] **health.go 重构：switch 职责分离**
+- [x] **health.go 重构：switch 职责分离**
   - 将 switch 缩减为：**参数校验 + 返回 (probeInstance, target) 二元组**
   - 不再在 switch 内部执行 MultiRoundProbe 和输出
   - switch 之后只保留一行通用调用：
@@ -36,7 +36,7 @@
     ```
   - 提取 `buildProber()` 工厂函数（可选，switch 不挪出去也能达到分离效果）
 
-- [ ] **DNS 探针增强**
+- [x] **DNS 探针增强**
   - 给 `DNSProber` 加字段（`RecordType`, `DNSServer`），类似 HTTP 的 struct 方案
   - 根据 `--record-type` 查询不同记录类型：
     - `A` → `LookupHost`（已有）

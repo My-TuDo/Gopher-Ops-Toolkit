@@ -46,7 +46,16 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 	switch d.RecordType {
 	case "A", "AAAA", "":
 		var ips []net.IP
-		ips, err = resolver.LookupIP(ctx, "ip", domain)
+		switch d.RecordType {
+		case "A":
+			ips, err = resolver.LookupIP(ctx, "ip4", domain)
+
+		case "AAAA":
+			ips, err = resolver.LookupIP(ctx, "ip6", domain)
+
+		default:
+			ips, err = resolver.LookupIP(ctx, "ip", domain)
+		}
 		if err == nil {
 			detail = fmt.Sprintf("Resolved to: %s", joinIPs(ips))
 		}

@@ -25,6 +25,9 @@ func RenderResultTable(results []prober.Result) {
 
 	// 详情列宽度 = 总宽 - 其他列固定宽 - 边框
 	detailWidth := termWidth - 8 - 26 - 6 - 8 - 14
+	if detailWidth > 60 {
+		detailWidth = 60 // 限制详情列最大宽度为 60
+	}
 
 	// 设置表头
 	table := tablewriter.NewTable(
@@ -42,7 +45,7 @@ func RenderResultTable(results []prober.Result) {
 			MaxWidth: termWidth,
 			Row: tw.CellConfig{
 				Formatting: tw.CellFormatting{
-					AutoWrap: tw.WrapNormal, // 单元格内自动换行
+					AutoWrap: tw.WrapTruncate, // 单元格内自动换行
 				},
 				Alignment: tw.CellAlignment{
 					Global: tw.AlignLeft, // 全局左对齐

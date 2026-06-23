@@ -28,6 +28,9 @@ func RenderResultTable(results []prober.Result) {
 	if detailWidth > 60 {
 		detailWidth = 60 // 限制详情列最大宽度为 60
 	}
+	if detailWidth < 10 {
+		detailWidth = 10 // 限制详情列最小宽度为 10
+	}
 
 	// 设置表头
 	table := tablewriter.NewTable(
@@ -75,8 +78,8 @@ func RenderResultTable(results []prober.Result) {
 		}
 
 		// 超长文本截断处理
-		if len(detailOrError) > 80 {
-			detailOrError = string([]rune(detailOrError)[:80]) + "..."
+		if len(detailOrError) > detailWidth {
+			detailOrError = string([]rune(detailOrError)[:detailWidth]) + "..."
 		}
 
 		row := []string{res.Name, res.Target, res.Status, latencyStr, detailOrError}

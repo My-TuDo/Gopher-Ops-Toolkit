@@ -34,7 +34,7 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 		success bool
 	}
 
-	reusltCh := make(chan roundResult, rounds)
+	resultCh := make(chan roundResult, rounds)
 	var wg sync.WaitGroup
 	// 每轮分配 timeout
 	for i := 0; i < rounds; i++ {
@@ -42,7 +42,7 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 		go func() {
 			defer wg.Done()
 			res := p.Probe(target, timeout)
-			reusltCh <- roundResult{
+			resultCh <- roundResult{
 				latency: res.Latency,
 				success: res.Status == "健康",
 			}
@@ -50,11 +50,11 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 	}
 
 	wg.Wait()
-	close(reusltCh)
+	close(resultCh)
 
 	var totalLatency int64
 	successCount := 0
-	for r := range reusltCh {
+	for r := range resultCh {
 		if r.success {
 			totalLatency += r.latency
 			successCount++

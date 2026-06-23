@@ -155,7 +155,7 @@ func init() {
 	// 通用参数
 	healthCmd.Flags().BoolP("all", "a", false, "执行全部探测（从配置文件读取）")
 	healthCmd.Flags().StringP("type", "t", "tcp", "指定探测类型(tcp|http|dns)")
-	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "探测超时时间`")
+	healthCmd.Flags().DurationP("timeout", "", 5*time.Second, "探测超时时间")
 	// 新增 --rounds 参数
 	healthCmd.Flags().IntP("rounds", "r", 1, "探测轮数，默认为 1")
 

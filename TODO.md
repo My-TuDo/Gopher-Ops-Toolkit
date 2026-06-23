@@ -57,7 +57,7 @@
   - 显示 Detail 信息
   - 示例：`TCP探测 | 目标: localhost:8080 | 状态: 健康 | 延迟: 12ms | 端口开放 (DNS: 0ms, 握手: 2ms)`
 
-- [ ] **代码清理**
+- [x] **代码清理**
   - 修复 `reusltCh` 拼写为 `resultCh`
   - 修复 `timeout` 描述末尾多余的反引号
 

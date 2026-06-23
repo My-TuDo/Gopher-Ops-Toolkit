@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/output"
 	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/prober"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,6 +30,7 @@ var healthCmd = &cobra.Command{
 		if allMode {
 			fmt.Println("执行全部探测...")
 
+			var results []prober.Result
 			allSuccess := true
 			for name, p := range prober.Probers {
 				targetKey := fmt.Sprintf("health.targets.%s", name)
@@ -39,11 +41,15 @@ var healthCmd = &cobra.Command{
 					continue
 				}
 				res := prober.MultiRoundProbe(p, specificTarget, timeout, rounds)
-				fmt.Println(res.String())
+				results = append(results, res)
 				if res.Status != "健康" {
 					allSuccess = false
 				}
 			}
+
+			// 输出表格
+			output.RenderResultTable(results)
+
 			if !allSuccess {
 				os.Exit(1)
 			}

@@ -1,6 +1,6 @@
 output: table
 save: false
-log-dir: /logs
+log-dir: logs
 
 health:
     type: tcp

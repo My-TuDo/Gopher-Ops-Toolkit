@@ -21,12 +21,15 @@ var healthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "检查服务的健康状态",
 	Run: func(cmd *cobra.Command, args []string) {
+		// 变量声明
 		rounds := viper.GetInt("health.rounds")
 		timeout := viper.GetDuration("health.timeout")
 		probeType, _ := cmd.Flags().GetString("type")
 		allMode, _ := cmd.Flags().GetBool("all")
 		var results []prober.Result               // 用于存储探测结果
 		outputFormat := viper.GetString("output") // 获取输出格式
+		save := viper.GetBool("save")             // 获取是否保存结果到文件
+		logDir := viper.GetString("log-dir")      // 获取日志目录
 
 		// ———————————————— --all 模式 ————————————————
 		if allMode {
@@ -52,6 +55,13 @@ var healthCmd = &cobra.Command{
 
 			// 输出表格
 			output.RenderResult(results, outputFormat)
+
+			// 保存结果到文件
+			if save {
+				if err := output.SaveToFile(results, logDir); err != nil {
+					fmt.Fprintf(os.Stderr, "保存日志失败: %v\n", err)
+				}
+			}
 
 			if !allSuccess {
 				os.Exit(1)
@@ -154,6 +164,13 @@ var healthCmd = &cobra.Command{
 
 		// 输出格式选择，默认为 table
 		output.RenderResult(results, outputFormat)
+
+		// 保存结果到文件
+		if save {
+			if err := output.SaveToFile(results, logDir); err != nil {
+				fmt.Fprintf(os.Stderr, "保存日志失败: %v\n", err)
+			}
+		}
 
 		if res.Status != "健康" {
 			os.Exit(1)

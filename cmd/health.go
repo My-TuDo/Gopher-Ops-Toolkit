@@ -25,11 +25,14 @@ var healthCmd = &cobra.Command{
 		timeout := viper.GetDuration("health.timeout")
 		probeType, _ := cmd.Flags().GetString("type")
 		allMode, _ := cmd.Flags().GetBool("all")
-		var results []prober.Result // 用于存储探测结果
+		var results []prober.Result               // 用于存储探测结果
+		outputFormat := viper.GetString("output") // 获取输出格式
 
 		// ———————————————— --all 模式 ————————————————
 		if allMode {
-			fmt.Println("执行全部探测...")
+			if outputFormat != "json" {
+				fmt.Println("执行全部探测...")
+			}
 
 			allSuccess := true
 			for name, p := range prober.Probers {
@@ -48,12 +51,12 @@ var healthCmd = &cobra.Command{
 			}
 
 			// 输出表格
-			output.RenderResultTable(results)
+			output.RenderResult(results, outputFormat)
 
 			if !allSuccess {
 				os.Exit(1)
 			}
-			if allSuccess {
+			if allSuccess && outputFormat != "json" {
 				fmt.Println("所有探测完成，服务状态正常")
 			}
 			return
@@ -148,11 +151,16 @@ var healthCmd = &cobra.Command{
 
 		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
 		results = append(results, res)
-		output.RenderResultTable(results)
+
+		// 输出格式选择，默认为 table
+		output.RenderResult(results, outputFormat)
+
 		if res.Status != "健康" {
 			os.Exit(1)
 		}
-		fmt.Println("探测完成，服务状态正常")
+		if outputFormat != "json" {
+			fmt.Println("探测完成，服务状态正常")
+		}
 	},
 }
 

@@ -40,18 +40,14 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.Gopher-Ops-Toolkit.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-
 	cobra.OnInitialize(initConfig) // 告诉 cobra 在执行任何命令之前先运行 initConfig 函数
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "configs/config.yaml", "config file (default is $HOME/.config.yaml)")
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	// 输出参数
+	rootCmd.PersistentFlags().StringP("output", "o", "table", "输出格式：table 或 json")
+	rootCmd.PersistentFlags().BoolP("save", "", false, "是否保存输出结果到文件")
+	rootCmd.PersistentFlags().StringP("log-dir", "", "/logs", "日志文件保存目录")
 }
 
 func initConfig() {

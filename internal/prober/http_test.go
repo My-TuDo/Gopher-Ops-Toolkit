@@ -42,3 +42,18 @@ func TestHTTPProbe_KeywordMismatch(t *testing.T) {
 		t.Errorf("期望不健康，得到 %s", res.Status)
 	}
 }
+
+// 测试 HTTPProber 的返回状态码不为 200 的情况
+func TestHTTPProbe_StatusCodeNot200(t *testing.T) {
+	// 启动本地服务器， 返回 500
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer server.Close()
+
+	p := HTTPProber{}
+	res := p.Probe(server.URL, 3*time.Second)
+	if res.Status != "不健康" {
+		t.Errorf("期望不健康，得到 %s", res.Status)
+	}
+}

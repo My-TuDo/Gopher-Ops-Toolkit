@@ -58,4 +58,21 @@ func TestMultiRoundProbe_MultiRound(t *testing.T) {
 }
 
 // 测试 MultiRoundProbe 函数在多轮探测时的行为，模拟所有探测失败的情况
-func TestMultiRoundProbe_AllFail(t *testing.T) {}
+func TestMultiRoundProbe_AllFail(t *testing.T) {
+	// rounds > 1 时，模拟所有探测失败的情况
+	mock := mockProber{
+		name: "Mock 测试",
+		result: Result{
+			Status: "不健康",
+			Error:  "模拟失败",
+		},
+	}
+
+	res := MultiRoundProbe(mock, "test-target", time.Second, 3)
+	if res.Status != "不健康" {
+		t.Errorf("期望不健康，得到 %s", res.Status)
+	}
+	if res.Error == "" {
+		t.Error("期望有错误信息，但为空")
+	}
+}

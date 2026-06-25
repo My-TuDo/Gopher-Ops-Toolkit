@@ -1,0 +1,41 @@
+name: Gopher Ops Toolkit CI
+
+on:
+    push:
+        branches: ["main"]  # push 到 main 分支时触发工作流
+    pull_request:
+        branches: ["main"]  # pull request 到 main 分支时触发工作流
+
+jobs:
+    quality-check:
+        name: 编译、静态检查与单元测试
+        runs-on: ubuntu-latest
+
+        steps:
+            # 克隆代码仓库
+            - name: Checkout Code
+              uses: actions/checkout@v4
+
+            # 设置 Go 环境
+            - name: Setup Go Environment
+              uses: actions/setup-go@v5
+              with:
+                go-version: '1.26.1'
+                cache: true
+
+            # 下载依赖
+            - name: Install Dependencies
+              run: go mod download
+
+            # 运行 golangci-lint 进行静态代码分析
+            - name: Run golangci-lint
+              uses: golangci/golangci-lint-action@v6
+              with:
+                version: v1.60
+
+            # 运行单元测试
+            - name: Run Unit Tests
+              run: |
+                echo "开始执行单元测试..."
+                go test ./... -v -coverprofile=coverage.txt
+              

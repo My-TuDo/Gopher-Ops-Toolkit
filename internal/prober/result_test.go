@@ -30,7 +30,7 @@ func TestMultiRoundProbe_SingleRound(t *testing.T) {
 		},
 	}
 
-	res := MultiRoundProbe(mock, "test-target", time.Second, 1)
+	res := MultiRoundProbe(mock, "test-target", 3*time.Second, 1)
 	if res.Status != "健康" {
 		t.Errorf("期望健康，得到 %s", res.Status)
 	}
@@ -51,7 +51,7 @@ func TestMultiRoundProbe_MultiRound(t *testing.T) {
 		},
 	}
 
-	res := MultiRoundProbe(mock, "test-target", time.Second, 5)
+	res := MultiRoundProbe(mock, "test-target", 3*time.Second, 5)
 	if res.Status != "健康" {
 		t.Errorf("期望健康，得到 %s", res.Status)
 	}

@@ -3,6 +3,7 @@ package prober
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 )
@@ -40,6 +41,9 @@ func TestHTTPProbe_Success(t *testing.T) {
 	res := p.Probe(server.URL, 3*time.Second)
 	if res.Status != "健康" {
 		t.Errorf("期望健康，得到 %s", res.Status)
+	}
+	if !strings.Contains(res.Detail, "响应体大小") {
+		t.Error("期望 Detail 包含响应体大小信息")
 	}
 }
 

@@ -57,3 +57,19 @@ func TestHTTPProbe_StatusCodeNot200(t *testing.T) {
 		t.Errorf("期望不健康，得到 %s", res.Status)
 	}
 }
+
+// 测试 HTTPProber 的请求超时的情况
+func TestHTTPProbe_Timeout(t *testing.T) {
+	// 启动本地服务器，延迟响应
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(5 * time.Second)
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	p := HTTPProber{}
+	res := p.Probe(server.URL, 1*time.Second)
+	if res.Status != "不健康" {
+		t.Errorf("期望不健康，得到 %s", res.Status)
+	}
+}

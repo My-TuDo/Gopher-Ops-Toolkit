@@ -207,7 +207,7 @@ func init() {
 	healthCmd.Flags().StringP("dns-server", "", "", "DNS 服务器地址")
 
 	// 绑定参数到 viper
-	viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))
-	viper.BindPFlag("health.type", healthCmd.Flags().Lookup("type"))
-	viper.BindPFlag("health.rounds", healthCmd.Flags().Lookup("rounds"))
+	_ = viper.BindPFlag("health.timeout", healthCmd.Flags().Lookup("timeout"))
+	_ = viper.BindPFlag("health.type", healthCmd.Flags().Lookup("type"))
+	_ = viper.BindPFlag("health.rounds", healthCmd.Flags().Lookup("rounds"))
 }

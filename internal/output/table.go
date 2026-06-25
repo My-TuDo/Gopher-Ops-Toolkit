@@ -101,8 +101,14 @@ func RenderResultTable(results []prober.Result) {
 
 		row := []string{res.Name, res.Target, res.Status, latencyStr, detailOrError}
 
-		table.Append(row)
+		err := table.Append(row)
+		if err != nil {
+			fmt.Printf("Error appending row: %v\n", err)
+		}
 	}
 	// 渲染输出
-	table.Render()
+	err := table.Render()
+	if err != nil {
+		fmt.Printf("Error rendering table: %v\n", err)
+	}
 }

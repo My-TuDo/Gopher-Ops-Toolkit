@@ -44,9 +44,9 @@ func init() {
 	rootCmd.PersistentFlags().StringP("log-dir", "", "./logs", "日志文件保存目录")
 
 	// 可从配置文件中读取参数
-	viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
-	viper.BindPFlag("save", rootCmd.PersistentFlags().Lookup("save"))
-	viper.BindPFlag("log-dir", rootCmd.PersistentFlags().Lookup("log-dir"))
+	_ = viper.BindPFlag("output", rootCmd.PersistentFlags().Lookup("output"))
+	_ = viper.BindPFlag("save", rootCmd.PersistentFlags().Lookup("save"))
+	_ = viper.BindPFlag("log-dir", rootCmd.PersistentFlags().Lookup("log-dir"))
 }
 
 func initConfig() {

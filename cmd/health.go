@@ -24,7 +24,7 @@ var healthCmd = &cobra.Command{
 		// 变量声明
 		rounds := viper.GetInt("health.rounds")
 		timeout := viper.GetDuration("health.timeout")
-		probeType, _ := cmd.Flags().GetString("type")
+		probeType := viper.GetString("health.type")
 		allMode, _ := cmd.Flags().GetBool("all")
 		var results []prober.Result               // 用于存储探测结果
 		outputFormat := viper.GetString("output") // 获取输出格式

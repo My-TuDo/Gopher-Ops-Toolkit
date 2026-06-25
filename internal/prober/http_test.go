@@ -73,3 +73,26 @@ func TestHTTPProbe_Timeout(t *testing.T) {
 		t.Errorf("期望不健康，得到 %s", res.Status)
 	}
 }
+
+// 测试 HTTPProber 的自定义请求头的情况
+func TestHTTPProbe_CustomHeaders(t *testing.T) {
+	// 启动本地服务器，检查请求头
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Test-Header") != "test-value" {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	p := HTTPProber{
+		Headers: map[string]string{
+			"X-Test-Header": "test-value", // 设置自定义请求头
+		},
+	}
+	res := p.Probe(server.URL, 3*time.Second)
+	if res.Status != "健康" {
+		t.Errorf("期望健康，得到 %s", res.Status)
+	}
+}

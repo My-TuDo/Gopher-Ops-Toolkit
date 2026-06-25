@@ -31,7 +31,7 @@ jobs:
             - name: Run golangci-lint
               uses: golangci/golangci-lint-action@v6
               with:
-                version: v1.64
+                version: latest
 
             # 运行单元测试
             - name: Run Unit Tests

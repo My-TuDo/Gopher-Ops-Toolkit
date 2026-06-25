@@ -10,7 +10,7 @@ import (
 func RenderResult(results []prober.Result, format string) {
 	switch format {
 	case "json":
-		RenderResultJSON(results) // 终端答应 JSON
+		RenderResultJSON(results) // 终端打印 JSON
 	default:
 		RenderResultTable(results)
 	}

@@ -32,7 +32,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		// 默认使用 http 协议
 		cleanedTarget = "http://" + cleanedTarget
 	}
-	bash := Result{
+	base := Result{
 		Name:   h.Name(),
 		Target: target,
 	}
@@ -52,10 +52,10 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 创建 HTTP 请求
 	req, err := http.NewRequestWithContext(ctx, method, cleanedTarget, nil)
 	if err != nil {
-		bash.Status = "不健康"
-		bash.Error = fmt.Sprintf("创建 HTTP 请求失败: %v", err)
-		bash.Latency = time.Since(start).Milliseconds()
-		return bash
+		base.Status = "不健康"
+		base.Error = fmt.Sprintf("创建 HTTP 请求失败: %v", err)
+		base.Latency = time.Since(start).Milliseconds()
+		return base
 	}
 
 	// 设置请求头
@@ -66,34 +66,34 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	// 发送 HTTP 请求
 	resp, err := client.Do(req)
 	if err != nil {
-		bash.Status = "不健康"
-		bash.Error = fmt.Sprintf("发送 HTTP 请求失败: %v", err)
-		bash.Latency = time.Since(start).Milliseconds()
-		return bash
+		base.Status = "不健康"
+		base.Error = fmt.Sprintf("发送 HTTP 请求失败: %v", err)
+		base.Latency = time.Since(start).Milliseconds()
+		return base
 	}
 	defer resp.Body.Close()
 
 	// 判断 HTTP 状态码
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-		bash.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+		base.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 		// 如果有关键字检测需求，读 body 检查
 		if h.Keyword != "" {
 			body, _ := io.ReadAll(resp.Body)
 			if !strings.Contains(string(body), h.Keyword) {
-				bash.Status = "不健康"
-				bash.Error = fmt.Sprintf("HTTP 响应体不包含关键字: %s", h.Keyword)
-				bash.Latency = time.Since(start).Milliseconds()
-				return bash
+				base.Status = "不健康"
+				base.Error = fmt.Sprintf("HTTP 响应体不包含关键字: %s", h.Keyword)
+				base.Latency = time.Since(start).Milliseconds()
+				return base
 			}
-			bash.Detail += fmt.Sprintf(" | 响应体大小：%d 字节", len(body))
+			base.Detail += fmt.Sprintf(" | 响应体大小：%d 字节", len(body))
 		}
-		bash.Status = "健康"
-		bash.Latency = time.Since(start).Milliseconds()
-		return bash
+		base.Status = "健康"
+		base.Latency = time.Since(start).Milliseconds()
+		return base
 	}
 
-	bash.Status = "不健康"
-	bash.Error = fmt.Sprintf("HTTP 状态码异常: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-	bash.Latency = time.Since(start).Milliseconds()
-	return bash
+	base.Status = "不健康"
+	base.Error = fmt.Sprintf("HTTP 状态码异常: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
+	base.Latency = time.Since(start).Milliseconds()
+	return base
 }

@@ -28,10 +28,10 @@ jobs:
               run: go mod download
 
             # 运行 golangci-lint 进行静态代码分析
-            - name: Run golangci-lint
-              uses: golangci/golangci-lint-action@v6
-              with:
-                version: latest
+            - name: Lint
+              run: |
+                go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+                golangci-lint run ./...
 
             # 运行单元测试
             - name: Run Unit Tests

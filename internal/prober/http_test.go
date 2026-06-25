@@ -16,6 +16,15 @@ func TestHTTPProbe_BadURL(t *testing.T) {
 	}
 }
 
+// 测试 发送请求失败
+func TestHTTPProbe_ConnectionError(t *testing.T) {
+	p := HTTPProber{}
+	res := p.Probe("http://localhost:19999", 3*time.Second)
+	if res.Status != "不健康" {
+		t.Errorf("期望不健康，得到 %s", res.Status)
+	}
+}
+
 // 测试 HTTPProber 的成功探测且返回的状态码为 200 且 body 包含关键字的情况
 func TestHTTPProbe_Success(t *testing.T) {
 	// 启动本地服务器， 返回 200

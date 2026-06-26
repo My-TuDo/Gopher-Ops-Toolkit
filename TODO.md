@@ -78,6 +78,31 @@
   - 允许用户设置延迟阈值（如 `--max-latency 500ms`）
   - 超阈值即使通也标记为"不健康"
 
+### P0 — 部署适配（v0.2.0 优先）
+
+- [ ] **XDG 标准路径适配**
+  - 默认配置路径: `~/.config/gopt/config.yaml`
+  - 默认日志目录: `~/.local/share/gopt/logs/`
+  - `--config` 可选覆盖，不传时自动读取默认路径
+  - 首次运行时自动创建目录和默认配置文件
+
+- [ ] **Dockerfile**
+  - 多阶段构建（builder → scratch）
+  - 镜像体积控制在 20MB 以内
+  - 默认 `ENTRYPOINT ["/gopt"]`
+
+- [ ] **Makefile / build.sh**
+  - `make build` — 编译
+  - `make test` — 跑测试
+  - `make release` — 交叉编译 + 打包 + 校验和
+  - `make install` — 安装到 `/usr/local/bin`
+
+### 我的补充建议
+
+- [ ] **`version` 命令增强** — 打印编译时间、Go 版本、commit hash（通过 ldflags 注入）
+- [ ] **日志自动轮转** — `--save` 写入的 `.jsonl` 文件超过一定大小自动分割
+- [ ] **命令补全** — 支持 `gopt completion bash` / `zsh`，方便日常使用
+
 ---
 
 ## 未来规划

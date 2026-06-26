@@ -31,6 +31,9 @@ go.work.sum
 # Personal learning notes (not tracked by git)
 NOTES.md
 
+# Runtime logs
+logs/
+
 # reasonix tools
 .reasonix/
 reasonix.toml

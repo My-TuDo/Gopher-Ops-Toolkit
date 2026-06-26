@@ -131,6 +131,8 @@ ops-toolkit/
 ├── main.go                   # CLI 入口
 ├── README.md
 ├── TODO.md                   # 开发计划
+├── tests/                    # 集成测试
+│   └── health_test.go        # health 命令端到端测试
 └── reasonix.toml
 ```
 

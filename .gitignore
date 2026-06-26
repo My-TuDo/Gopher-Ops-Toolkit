@@ -8,6 +8,7 @@
 *.so
 *.dylib
 gopt
+ops-toolkit
 
 # Test binary, built with `go test -c`
 *.test

@@ -9,7 +9,7 @@
 ### 构建
 
 ```bash
-go build -o ops-toolkit
+go build -o gopt
 ```
 
 ### 配置
@@ -39,13 +39,13 @@ health:
 #### 全部探测（从配置文件读取）
 
 ```bash
-ops-toolkit health --all
+gopt health --all
 ```
 
 #### TCP 端口探测
 
 ```bash
-ops-toolkit health --type tcp --host example.com --port 3306
+gopt health --type tcp --host example.com --port 3306
 ```
 
 `TCP` 探针会自动进行 DNS 解析耗时 + 握手耗时分解，并尝试读取服务 Banner。
@@ -54,14 +54,14 @@ ops-toolkit health --type tcp --host example.com --port 3306
 
 ```bash
 # 基础用法
-ops-toolkit health --type http --url http://example.com/health
+gopt health --type http --url http://example.com/health
 
 # 自定义请求方法和请求头
-ops-toolkit health --type http --url http://example.com/api \
+gopt health --type http --url http://example.com/api \
     --method POST -H "Content-Type: application/json"
 
 # 响应体关键字检测
-ops-toolkit health --type http --url http://example.com/health \
+gopt health --type http --url http://example.com/health \
     --keyword "healthy"
 ```
 
@@ -69,37 +69,37 @@ ops-toolkit health --type http --url http://example.com/health \
 
 ```bash
 # 查询 A 记录（默认）
-ops-toolkit health --type dns --domain baidu.com
+gopt health --type dns --domain baidu.com
 
 # 指定记录类型
-ops-toolkit health --type dns --domain google.com --record-type MX
-ops-toolkit health --type dns --domain google.com --record-type NS
-ops-toolkit health --type dns --domain google.com --record-type TXT
+gopt health --type dns --domain google.com --record-type MX
+gopt health --type dns --domain google.com --record-type NS
+gopt health --type dns --domain google.com --record-type TXT
 
 # 使用外置 DNS 服务器
-ops-toolkit health --type dns --domain baidu.com --dns-server 8.8.8.8
+gopt health --type dns --domain baidu.com --dns-server 8.8.8.8
 ```
 
 #### 输出与保存
 
 ```bash
 # JSON 格式输出
-ops-toolkit health --all --output json
+gopt health --all --output json
 
 # 保存结果到日志文件
-ops-toolkit health --all --save
+gopt health --all --save
 
 # 指定日志目录
-ops-toolkit health --all --save --log-dir /var/log/ops
+gopt health --all --save --log-dir /var/log/ops
 
 # 多轮并发探测（取平均延迟）
-ops-toolkit health --type tcp --host example.com --port 80 --rounds 5
+gopt health --type tcp --host example.com --port 80 --rounds 5
 ```
 
 ### version — 版本信息
 
 ```bash
-ops-toolkit version
+gopt version
 ```
 
 ---
@@ -107,7 +107,7 @@ ops-toolkit version
 ## 项目结构
 
 ```
-ops-toolkit/
+gopt/
 ├── cmd/                      # 命令定义
 │   ├── health.go             # 健康检查命令（已完成）
 │   ├── root.go               # 根命令 & 配置初始化

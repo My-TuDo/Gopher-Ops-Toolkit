@@ -16,7 +16,7 @@ var (
 	cfgFile string
 
 	rootCmd = &cobra.Command{
-		Use:   "Gopher-Ops-Toolkit",
+		Use:   "gopt",
 		Short: "Gopher-Ops-Toolkit: 一个运维工具箱",
 		// Uncomment the following line if your bare application
 		// has an action associated with it:

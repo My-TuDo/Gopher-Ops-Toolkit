@@ -11,7 +11,7 @@ import (
 
 // 编译二进制
 func TestMain(m *testing.M) {
-	if err := exec.Command("go", "build", "-o", "../ops-toolkit", "..").Run(); err != nil {
+	if err := exec.Command("go", "build", "-o", "../gopt", "..").Run(); err != nil {
 		os.Stderr.WriteString("编译失败: " + err.Error() + "\n")
 		os.Exit(1)
 	}
@@ -42,7 +42,7 @@ func TestHealthCheck(t *testing.T) {
 	port := ln.Addr().(*net.TCPAddr).Port
 
 	// 编译并执行子进程
-	cmd := exec.Command("../ops-toolkit", "health",
+	cmd := exec.Command("../gopt", "health",
 		"--config", "../configs/config.yaml",
 		"--type", "tcp",
 		"--host", "127.0.0.1",
@@ -62,7 +62,7 @@ func TestHealthCheck(t *testing.T) {
 
 // 测试健康检查命令的 TCP 探测功能，模拟端口未开放的情况
 func TestHealth_TCP_Refused(t *testing.T) {
-	cmd := exec.Command("../ops-toolkit", "health",
+	cmd := exec.Command("../gopt", "health",
 		"--config", "../configs/config.yaml",
 		"--type", "tcp",
 		"--host", "127.0.0.1",
@@ -81,7 +81,7 @@ func TestHealth_TCP_Refused(t *testing.T) {
 
 // 测试健康检查命令的 DNS 探测功能，模拟域名解析成功的情况
 func TestHealth_DNS_Success(t *testing.T) {
-	cmd := exec.Command("../ops-toolkit", "health",
+	cmd := exec.Command("../gopt", "health",
 		"--config", "../configs/config.yaml",
 		"--type", "dns",
 		"--domain", "baidu.com",
@@ -98,7 +98,7 @@ func TestHealth_DNS_Success(t *testing.T) {
 
 // 测试健康检查命令的 DNS 探测功能，模拟域名解析失败的情况
 func TestHealth_DNS_NotFound(t *testing.T) {
-	cmd := exec.Command("../ops-toolkit", "health",
+	cmd := exec.Command("../gopt", "health",
 		"--config", "../configs/config.yaml",
 		"--type", "dns",
 		"--domain", "this-domain-does-not-exist-12345.com", // 肯定不存在的域名

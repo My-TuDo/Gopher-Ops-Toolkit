@@ -18,6 +18,7 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+// 测试健康检查命令的 TCP 探测功能
 func TestHealthCheck(t *testing.T) {
 	// 启动本地服务器
 
@@ -59,6 +60,7 @@ func TestHealthCheck(t *testing.T) {
 
 }
 
+// 测试健康检查命令的 TCP 探测功能，模拟端口未开放的情况
 func TestHealth_TCP_Refused(t *testing.T) {
 	cmd := exec.Command("../ops-toolkit", "health",
 		"--config", "../configs/config.yaml",
@@ -74,5 +76,39 @@ func TestHealth_TCP_Refused(t *testing.T) {
 	}
 	if !strings.Contains(string(output), "不健康") {
 		t.Errorf("期望输出包含 '不健康'，但实际输出为: %s", string(output))
+	}
+}
+
+// 测试健康检查命令的 DNS 探测功能，模拟域名解析成功的情况
+func TestHealth_DNS_Success(t *testing.T) {
+	cmd := exec.Command("../ops-toolkit", "health",
+		"--config", "../configs/config.yaml",
+		"--type", "dns",
+		"--domain", "baidu.com",
+		"--timeout", "5s",
+	)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("子进程执行失败: %v\n输出: %s", err, output)
+	}
+	if !strings.Contains(string(output), "健康") {
+		t.Errorf("期望输出包含'健康'，得到:\n%s", output)
+	}
+}
+
+// 测试健康检查命令的 DNS 探测功能，模拟域名解析失败的情况
+func TestHealth_DNS_NotFound(t *testing.T) {
+	cmd := exec.Command("../ops-toolkit", "health",
+		"--config", "../configs/config.yaml",
+		"--type", "dns",
+		"--domain", "this-domain-does-not-exist-12345.com", // 肯定不存在的域名
+		"--timeout", "5s",
+	)
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Error("期望子进程非零退出，但成功了")
+	}
+	if !strings.Contains(string(output), "不健康") {
+		t.Errorf("期望输出包含'不健康'，得到:\n%s", output)
 	}
 }

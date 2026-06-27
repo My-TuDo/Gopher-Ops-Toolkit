@@ -1,0 +1,19 @@
+# gopt 默认配置文件
+# 首次运行自动生成，路径: ~/.config/gopt/config.yaml
+#
+# 你可以编辑此文件来修改默认行为，也可以通过 --config 指向其他路径。
+# 所有配置项均可通过环境变量覆盖（如 GOPT_OUTPUT=json）。
+#
+
+output: table        # 输出格式: table | json
+save: false          # 是否保存结果到日志文件
+log-dir: ./logs      # 日志文件保存目录
+
+health:
+    type: tcp
+    timeout: 5s
+    rounds: 1
+    targets:
+        tcp:  "localhost:8080"
+        http: "http://localhost:8080"
+        dns:  "baidu.com"

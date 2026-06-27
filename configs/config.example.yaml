@@ -1,0 +1,29 @@
+# =============================================================================
+# gopt 配置文件示例
+#
+# 首次运行 gopt 时会自动在 ~/.config/gopt/config.yaml 创建默认配置，
+# 你直接编辑那个文件即可，无需手动复制本文件。
+#
+# 如果你想把配置放在别处，可以用 --config 指向任意路径：
+#   gopt health --all --config /etc/gopt/prod.yaml
+#
+# 所有配置项也可通过 GOPT_ 前缀的环境变量覆盖：
+#   export GOPT_OUTPUT=json
+#   export GOPT_LOG_DIR=/var/log/gopt
+# =============================================================================
+#
+# 注意：config.yaml 已被 .gitignore 忽略，不会提交到 Git。
+# 请勿将包含真实内网地址、端口、域名、密钥的配置推送到远程仓库。
+#
+
+output: table        # 输出格式: table | json
+save: false          # 是否保存结果到日志文件
+log-dir: ./logs      # 日志文件保存目录
+
+health:
+    timeout: 5s
+    rounds: 1
+    targets:
+        tcp:  "localhost:8080"
+        http: "http://localhost:8080"
+        dns:  "baidu.com"

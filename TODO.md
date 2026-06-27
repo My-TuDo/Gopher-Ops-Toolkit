@@ -80,16 +80,17 @@
 
 ### P0 — 部署适配（v0.2.0 优先）
 
-- [ ] **XDG 标准路径适配**
+- [x] **XDG 标准路径适配**
   - 默认配置路径: `~/.config/gopt/config.yaml`
   - 默认日志目录: `~/.local/share/gopt/logs/`
   - `--config` 可选覆盖，不传时自动读取默认路径
   - 首次运行时自动创建目录和默认配置文件
 
-- [ ] **Dockerfile**
+- [x] **Dockerfile**
   - 多阶段构建（builder → scratch）
-  - 镜像体积控制在 20MB 以内
+  - 镜像体积控制在 20MB 以内 (实际: 12.3MB)
   - 默认 `ENTRYPOINT ["/gopt"]`
+  - 配置已通过 //go:embed 嵌入二进制，Docker 开箱即用
 
 - [ ] **Makefile / build.sh**
   - `make build` — 编译

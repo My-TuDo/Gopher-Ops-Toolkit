@@ -39,6 +39,11 @@ logs/
 .reasonix/
 reasonix.toml
 
+# Config files (may contain internal hosts, IPs, ports)
+configs/config.yaml
+configs/*.yaml
+!configs/config.example.yaml
+
 # Editor/IDE
 # .idea/
 # .vscode/

@@ -17,7 +17,7 @@ var versionCmd = &cobra.Command{
 	Long:  `Gopher Ops Toolkit is a collection of tools and utilities designed to assist Go developers in various aspects of their development workflow. It provides a set of commands and features that can help with tasks such as code generation, project scaffolding, dependency management, and more. The toolkit aims to streamline the development process and enhance productivity for Go developers.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose := viper.GetBool("verbose")
-		version := "v0.1.0"
+		version := "v0.2.0"
 		if verbose {
 			fmt.Printf("version: %s\nconfig: %s\n", version, cfgFile)
 		} else {

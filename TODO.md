@@ -78,6 +78,60 @@
   - 允许用户设置延迟阈值（如 `--max-latency 500ms`）
   - 超阈值即使通也标记为"不健康"
 
+---
+
+## 2026-07 面试复盘优化项
+
+以下优化点来自大厂面试技术拷打复盘，按优先级排列：
+
+### P0 — 必须修复（影响正确性 & 健壮性）✅
+
+- [x] **tcp.go: DNS 多 IP Fallback**
+  - 遍历 ips 切片，逐 IP 重试 DialContext，成功后 break
+  - 每次重试前检查 `ctx.Err()`，超时后停止重试
+
+- [x] **result.go: MultiRoundProbe 并发限流 + 熔断**
+  - 信号量 channel（`maxConcurrentProbes=5`）控制并发 goroutine 上限
+  - 叠加熔断：atomic 计数失败次数，达到阈值时 `context.CancelFunc` 通知退出
+  - `select` 多路复用令牌获取与 `<-ctx.Done()` 实现优雅取消
+
+- [x] **http.go: HTTP Client 复用 & 内存安全**
+  - 包级 `defaultHTTPClient` 复用 Transport 连接池
+  - `io.LimitReader(resp.Body, 10MB)` 限制 body 读取，防止大响应体 OOM
+  - `defer` 中 `io.Copy(io.Discard, resp.Body)` 耗尽 body 后归还连接到池
+
+- [x] **config.go: os.Stat 权限判断 BUG**
+  - 用 `os.IsNotExist(err)` 区分「不存在」和「其他错误」
+  - 权限不足时 stderr 告警 + fallback 到下一级路径
+
+- [x] **health.go & 所有 cmd: 干掉散落 os.Exit，统一用 RunE**
+  - `healthCmd.Run` → `RunE`，返回 error 替代 `os.Exit(1)`
+  - `Execute()` 顶层统一 `os.Exit(1)`，保持唯一退出点
+  - 配套 `SilenceErrors: true` + `SilenceUsage: true`
+
+### P1 — 建议优化（质量 & 体验）
+
+- [x] **config.go: 空 error 处理块加输出**
+  - `EnsureDefaultConfig` 失败时输出 `⚠️` 警告信息，用户有感知
+
+- [ ] **tcp.go: Banner 读取超时可配置**
+  - 当前写死 `300ms`，对于慢启动协议（SSH/Redis）可能漏读
+  - 优化：提取为结构体字段或 config 项
+
+- [ ] **cmd/exec.go: 空壳命令**
+  - 当前 `Run: func() { fmt.Println("exec called") }`，无实际功能
+  - 要么实现真实功能，要么删除避免迷惑用户
+
+### P2 — 远期规划
+
+- [ ] **Dockerfile: 考虑 distroless/base 替代 scratch**
+  - scratch 缺少 /etc/resolv.conf 的兜底，某些 Docker 网络插件下 DNS 解析异常
+  - gcr.io/distroless/base 包含基础系统文件，仅比 scratch 大几 MB
+
+- [ ] **全局 http.Client 连接池参数可配置**
+  - MaxIdleConns、MaxIdleConnsPerHost、IdleConnTimeout、TLSHandshakeTimeout
+  - 支持从 config.yaml 读取或 CLI 参数覆盖
+
 ### P0 — 部署适配（v0.2.0 优先）
 
 - [x] **XDG 标准路径适配**

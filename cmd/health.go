@@ -6,7 +6,6 @@ package cmd
 import (
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 var healthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "检查服务的健康状态",
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		// 变量声明
 		rounds := viper.GetInt("health.rounds")
 		timeout := viper.GetDuration("health.timeout")
@@ -37,7 +36,7 @@ var healthCmd = &cobra.Command{
 				fmt.Println("执行全部探测...")
 			}
 
-			allSuccess := true
+			var allSuccess = true
 			for name, p := range prober.Probers {
 				targetKey := fmt.Sprintf("health.targets.%s", name)
 				specificTarget := viper.GetString(targetKey)
@@ -59,17 +58,17 @@ var healthCmd = &cobra.Command{
 			// 保存结果到文件
 			if save {
 				if err := output.SaveToFile(results, logDir); err != nil {
-					fmt.Fprintf(os.Stderr, "保存日志失败: %v\n", err)
+					fmt.Fprintf(cmd.ErrOrStderr(), "保存日志失败: %v\n", err)
 				}
 			}
 
 			if !allSuccess {
-				os.Exit(1)
+				return fmt.Errorf("存在不健康的探测项")
 			}
-			if allSuccess && outputFormat != "json" {
+			if outputFormat != "json" {
 				fmt.Println("所有探测完成，服务状态正常")
 			}
-			return
+			return nil
 		}
 
 		// ———————————————— 单项探测 ————————————————
@@ -79,31 +78,26 @@ var healthCmd = &cobra.Command{
 		switch probeType {
 		case "tcp":
 			if cmd.Flags().Changed("url") {
-				fmt.Println("[ERROR] TCP 探测不支持 --url 参数")
-				os.Exit(1)
+				return fmt.Errorf("TCP 探测不支持 --url 参数")
 			}
 			if cmd.Flags().Changed("domain") {
-				fmt.Println("[ERROR] TCP 探测不支持 --domain 参数")
-				os.Exit(1)
+				return fmt.Errorf("TCP 探测不支持 --domain 参数")
 			}
 
 			host, _ := cmd.Flags().GetString("host")
 			port, _ := cmd.Flags().GetString("port")
 			if host == "" || port == "" {
-				fmt.Println("[ERROR] TCP 探测需要 --host 和 --port 参数")
-				os.Exit(1)
+				return fmt.Errorf("TCP 探测需要 --host 和 --port 参数")
 			}
 			target = net.JoinHostPort(host, port)
 			probeInstance = prober.Probers["tcp"]
 
 		case "http":
 			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
-				fmt.Println("[ERROR] HTTP 探测不支持 --host 或 --port 参数")
-				os.Exit(1)
+				return fmt.Errorf("HTTP 探测不支持 --host 或 --port 参数")
 			}
 			if cmd.Flags().Changed("domain") {
-				fmt.Println("[ERROR] HTTP 探测不支持 --domain 参数")
-				os.Exit(1)
+				return fmt.Errorf("HTTP 探测不支持 --domain 参数")
 			}
 
 			url, _ := cmd.Flags().GetString("url")
@@ -111,8 +105,7 @@ var healthCmd = &cobra.Command{
 			headers, _ := cmd.Flags().GetStringArray("header")
 			keyword, _ := cmd.Flags().GetString("keyword")
 			if url == "" {
-				fmt.Println("[ERROR] HTTP 探测需要 --url 参数")
-				os.Exit(1)
+				return fmt.Errorf("HTTP 探测需要 --url 参数")
 			}
 
 			// 将 []string 解析为 map[string]string
@@ -132,20 +125,17 @@ var healthCmd = &cobra.Command{
 
 		case "dns":
 			if cmd.Flags().Changed("host") || cmd.Flags().Changed("port") {
-				fmt.Println("[ERROR] DNS 探测不支持 --host 或 --port 参数")
-				os.Exit(1)
+				return fmt.Errorf("DNS 探测不支持 --host 或 --port 参数")
 			}
 			if cmd.Flags().Changed("url") {
-				fmt.Println("[ERROR] DNS 探测不支持 --url 参数")
-				os.Exit(1)
+				return fmt.Errorf("DNS 探测不支持 --url 参数")
 			}
 
 			domain, _ := cmd.Flags().GetString("domain")
 			recordType, _ := cmd.Flags().GetString("record-type")
 			dnsServer, _ := cmd.Flags().GetString("dns-server")
 			if domain == "" {
-				fmt.Println("[ERROR] DNS 探测需要 --domain 参数")
-				os.Exit(1)
+				return fmt.Errorf("DNS 探测需要 --domain 参数")
 			}
 
 			target = domain
@@ -155,8 +145,7 @@ var healthCmd = &cobra.Command{
 			}
 
 		default:
-			fmt.Printf("[ERROR] 不支持的探测类型: '%s',支持的类型有: tcp, http, dns\n", probeType)
-			os.Exit(1)
+			return fmt.Errorf("不支持的探测类型: '%s', 支持的类型有: tcp, http, dns", probeType)
 		}
 
 		res := prober.MultiRoundProbe(probeInstance, target, timeout, rounds)
@@ -168,16 +157,17 @@ var healthCmd = &cobra.Command{
 		// 保存结果到文件
 		if save {
 			if err := output.SaveToFile(results, logDir); err != nil {
-				fmt.Fprintf(os.Stderr, "保存日志失败: %v\n", err)
+				fmt.Fprintf(cmd.ErrOrStderr(), "保存日志失败: %v\n", err)
 			}
 		}
 
 		if res.Status != "健康" {
-			os.Exit(1)
+			return fmt.Errorf("探测结果: %s", res.Status)
 		}
 		if outputFormat != "json" {
 			fmt.Println("探测完成，服务状态正常")
 		}
+		return nil
 	},
 }
 

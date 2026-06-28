@@ -17,11 +17,10 @@ var (
 	cfgFile string
 
 	rootCmd = &cobra.Command{
-		Use:   "gopt",
-		Short: "Gopher-Ops-Toolkit: 一个运维工具箱",
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
-		// Run: func(cmd *cobra.Command, args []string) { },
+		Use:           "gopt",
+		Short:         "Gopher-Ops-Toolkit: 一个运维工具箱",
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 )
 

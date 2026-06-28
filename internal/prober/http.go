@@ -94,8 +94,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 
 	// 确保连接归还连接池：先耗尽 body，再 close
 	defer func() {
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
+			_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 
 	// 判断 HTTP 状态码

@@ -146,15 +146,18 @@
   - 默认 `ENTRYPOINT ["/gopt"]`
   - 配置已通过 //go:embed 嵌入二进制，Docker 开箱即用
 
-- [ ] **Makefile / build.sh**
+- [x] **Makefile**
   - `make build` — 编译
-  - `make test` — 跑测试
-  - `make release` — 交叉编译 + 打包 + 校验和
+  - `make test` — 跑测试（含覆盖率）
+  - `make release` — 交叉编译(5平台) + SHA256 校验和
   - `make install` — 安装到 `/usr/local/bin`
+  - `make lint` — go vet
+  - `make docker` — Docker 构建
+  - `make clean` — 清理产物
 
 ### 我的补充建议
 
-- [ ] **`version` 命令增强** — 打印编译时间、Go 版本、commit hash（通过 ldflags 注入）
+- [x] **`version` 命令增强** — `-v` 显示编译时间、Go 版本、commit hash（通过 ldflags 注入）
 - [ ] **日志自动轮转** — `--save` 写入的 `.jsonl` 文件超过一定大小自动分割
 - [ ] **命令补全** — 支持 `gopt completion bash` / `zsh`，方便日常使用
 

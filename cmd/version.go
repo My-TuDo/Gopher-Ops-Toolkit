@@ -5,21 +5,31 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+)
+
+// 以下变量由 Makefile 通过 ldflags 注入
+var (
+	commitHash string
+	buildTime  string
 )
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version number",
-	Long:  `Gopher Ops Toolkit is a collection of tools and utilities designed to assist Go developers in various aspects of their development workflow. It provides a set of commands and features that can help with tasks such as code generation, project scaffolding, dependency management, and more. The toolkit aims to streamline the development process and enhance productivity for Go developers.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		verbose := viper.GetBool("verbose")
+		verbose, _ := cmd.Flags().GetBool("verbose")
 		version := "v0.2.0"
 		if verbose {
-			fmt.Printf("version: %s\nconfig: %s\n", version, cfgFile)
+			fmt.Printf("version:   %s\n", version)
+			fmt.Printf("commit:    %s\n", commitHash)
+			fmt.Printf("built:     %s\n", buildTime)
+			fmt.Printf("go:        %s %s/%s\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
+			fmt.Printf("config:    %s\n", cfgFile)
 		} else {
 			fmt.Println(version)
 		}
@@ -28,14 +38,5 @@ var versionCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	versionCmd.Flags().BoolP("verbose", "v", false, "显示详细版本信息（commit、编译时间、Go 版本等）")
 }

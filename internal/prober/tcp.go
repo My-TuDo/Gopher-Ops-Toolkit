@@ -48,18 +48,34 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 		}
 	}
 
-	// ———— TCP 握手阶段 ——————
+	// ———— TCP 握手阶段（多 IP Fallback）—————
+	// 遍历所有解析出的 IP，逐个尝试连接，第一个成功的 break
+	var conn net.Conn
+	var lastErr error
 	connStart := time.Now()
 	dialer := net.Dialer{}
-	conn, err := dialer.DialContext(ctx, "tcp", net.JoinHostPort(ips[0], port))
+
+	for _, ip := range ips {
+		// 每次重试前检查上下文是否已超时/取消
+		if ctx.Err() != nil {
+			lastErr = ctx.Err()
+			break
+		}
+		conn, lastErr = dialer.DialContext(ctx, "tcp", net.JoinHostPort(ip, port))
+		if lastErr == nil {
+			break // 连接成功
+		}
+	}
+
 	handshakeDuration := time.Since(connStart).Milliseconds()
 	totalDuration := time.Since(start).Milliseconds()
-	if err != nil {
+
+	if lastErr != nil {
 		return Result{
 			Name:    t.Name(),
 			Target:  target,
 			Status:  "不健康",
-			Error:   fmt.Sprintf("TCP 握手失败: %v", err),
+			Error:   fmt.Sprintf("TCP 握手失败 (尝试 %d 个 IP): %v", len(ips), lastErr),
 			Latency: totalDuration,
 		}
 	}

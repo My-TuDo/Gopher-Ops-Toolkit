@@ -4,10 +4,33 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"time"
 )
+
+const (
+	// maxBodySize 限制读取 HTTP 响应体的最大字节数（10MB）
+	maxBodySize = 10 * 1024 * 1024
+)
+
+// defaultHTTPClient 是包级复用的 HTTP 客户端，带连接池配置。
+// 每次 Probe 不再新建 http.Client，避免 Transport 连接池无法复用。
+var defaultHTTPClient = &http.Client{
+	Transport: &http.Transport{
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 5,
+		IdleConnTimeout:     90 * time.Second,
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2: true,
+	},
+	// 不设置 Timeout，由 request context 控制超时
+	Timeout: 0,
+}
 
 type HTTPProber struct {
 	Method  string            // HTTP 方法，如 GET、POST 等
@@ -36,9 +59,6 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		Name:   h.Name(),
 		Target: target,
 	}
-	// 创建 HTTP 客户端
-	client := http.Client{}
-
 	// 创建动态超时控制
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
@@ -63,22 +83,34 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 		req.Header.Set(key, value)
 	}
 
-	// 发送 HTTP 请求
-	resp, err := client.Do(req)
+	// 使用复用客户端发送 HTTP 请求
+	resp, err := defaultHTTPClient.Do(req)
 	if err != nil {
 		base.Status = "不健康"
 		base.Error = fmt.Sprintf("发送 HTTP 请求失败: %v", err)
 		base.Latency = time.Since(start).Milliseconds()
 		return base
 	}
-	defer resp.Body.Close()
+
+	// 确保连接归还连接池：先耗尽 body，再 close
+	defer func() {
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
+	}()
 
 	// 判断 HTTP 状态码
 	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
 		base.Detail = fmt.Sprintf("HTTP 状态码: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		// 如果有关键字检测需求，读 body 检查
+		// 如果有关键字检测需求，读 body 检查（限制最大读取量）
 		if h.Keyword != "" {
-			body, _ := io.ReadAll(resp.Body)
+			limitedReader := io.LimitReader(resp.Body, maxBodySize)
+			body, readErr := io.ReadAll(limitedReader)
+			if readErr != nil {
+				base.Status = "不健康"
+				base.Error = fmt.Sprintf("读取响应体失败: %v", readErr)
+				base.Latency = time.Since(start).Milliseconds()
+				return base
+			}
 			if !strings.Contains(string(body), h.Keyword) {
 				base.Status = "不健康"
 				base.Error = fmt.Sprintf("HTTP 响应体不包含关键字: %s", h.Keyword)

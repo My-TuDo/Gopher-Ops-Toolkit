@@ -63,7 +63,8 @@ func initConfig() {
 		// 首次运行，在 XDG 路径自动创建默认配置文件
 		created, err := config.EnsureDefaultConfig(path)
 		if err != nil {
-			// 创建失败（如 home 不可写）静默降级，内嵌默认值足以运行
+			fmt.Fprintf(os.Stderr, "⚠️ 警告: 无法创建默认配置文件 %s: %v\n", path, err)
+			fmt.Fprintf(os.Stderr, "   内嵌默认配置足以支撑运行，如需自定义请手动创建。\n\n")
 		} else if created {
 			fmt.Fprintf(os.Stderr, "\n📄 默认配置文件已创建: %s\n", path)
 			fmt.Fprintf(os.Stderr, "   编辑此文件可自定义探测目标、输出格式等。\n\n")

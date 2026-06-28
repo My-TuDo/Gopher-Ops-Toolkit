@@ -22,25 +22,30 @@ var DefaultConfig []byte
 func ResolveConfigPath(cfgFile string) (path string, exists bool) {
 	// 优先级 1: --config 显式指定
 	if cfgFile != "" {
-		_, err := os.Stat(cfgFile)
-		return cfgFile, err == nil
+		if exists := pathExists(cfgFile); exists {
+			return cfgFile, true
+		}
+		// 用户显式指定的文件不存在才返回（权限不足时仍尝试加载，让 viper 报错）
+		return cfgFile, false
 	}
 
 	// 优先级 2: GOPT_CONFIG 环境变量
 	if envPath := os.Getenv("GOPT_CONFIG"); envPath != "" {
-		_, err := os.Stat(envPath)
-		return envPath, err == nil
+		if exists := pathExists(envPath); exists {
+			return envPath, true
+		}
+		// 环境变量指向的文件不存在，继续往下查找
 	}
 
 	// 优先级 3: XDG 默认路径
 	xdgPath := xdgConfigPath()
-	if _, err := os.Stat(xdgPath); err == nil {
+	if pathExists(xdgPath) {
 		return xdgPath, true
 	}
 
 	// 优先级 4: 本地开发路径
 	localPath := filepath.Join("configs", "config.yaml")
-	if _, err := os.Stat(localPath); err == nil {
+	if pathExists(localPath) {
 		return localPath, true
 	}
 
@@ -48,10 +53,25 @@ func ResolveConfigPath(cfgFile string) (path string, exists bool) {
 	return xdgPath, false
 }
 
+// pathExists 检查文件是否存在，仅当明确「不存在」时返回 false。
+// 权限不足等错误会 stderr 告警并返回 false（让调用方 fallback）。
+func pathExists(p string) bool {
+	_, err := os.Stat(p)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	// 权限不足或其他错误：stderr 告警，按不存在处理以触发 fallback
+	fmt.Fprintf(os.Stderr, "⚠️ 警告: 无法访问 %s: %v\n", p, err)
+	return false
+}
+
 // EnsureDefaultConfig 在指定路径写入嵌入的默认配置。
 // 如果文件已存在则不操作。返回是否为新创建。
 func EnsureDefaultConfig(path string) (created bool, err error) {
-	if _, err := os.Stat(path); err == nil {
+	if pathExists(path) {
 		return false, nil
 	}
 

@@ -22,7 +22,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print the version number",
 	Run: func(cmd *cobra.Command, args []string) {
 		verbose, _ := cmd.Flags().GetBool("verbose")
-		version := "v0.2.0"
+		version := "v0.3.0"
 		if verbose {
 			fmt.Printf("version:   %s\n", version)
 			fmt.Printf("commit:    %s\n", commitHash)

@@ -8,7 +8,6 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // 以下变量由 Makefile 通过 ldflags 注入

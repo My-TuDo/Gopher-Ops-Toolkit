@@ -40,11 +40,12 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 	dnsDuration := time.Since(dnsStart).Milliseconds()
 	if err != nil {
 		return Result{
-			Name:    t.Name(),
-			Target:  target,
-			Status:  "不健康",
-			Error:   fmt.Sprintf("DNS 解析失败: %v", err),
-			Latency: time.Since(start).Milliseconds(),
+			Name:      t.Name(),
+			Target:    target,
+			Status:    "不健康",
+			ErrorCode: ErrCodeDNSFailure,
+			Error:     fmt.Sprintf("DNS 解析失败: %v", err),
+			Latency:   time.Since(start).Milliseconds(),
 		}
 	}
 
@@ -72,11 +73,12 @@ func (t TCPProber) Probe(target string, timeout time.Duration) Result {
 
 	if lastErr != nil {
 		return Result{
-			Name:    t.Name(),
-			Target:  target,
-			Status:  "不健康",
-			Error:   fmt.Sprintf("TCP 握手失败 (尝试 %d 个 IP): %v", len(ips), lastErr),
-			Latency: totalDuration,
+			Name:      t.Name(),
+			Target:    target,
+			Status:    "不健康",
+			ErrorCode: ErrCodeUnreachable,
+			Error:     fmt.Sprintf("TCP 握手失败 (尝试 %d 个 IP): %v", len(ips), lastErr),
+			Latency:   totalDuration,
 		}
 	}
 	defer conn.Close()

@@ -102,22 +102,24 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 
 	default:
 		return Result{
-			Name:    d.Name(),
-			Target:  target,
-			Status:  "不健康",
-			Error:   fmt.Sprintf("不支持的 DNS 记录类型: %s", d.RecordType),
-			Latency: time.Since(start).Milliseconds(),
+			Name:      d.Name(),
+			Target:    target,
+			Status:    "不健康",
+			ErrorCode: ErrCodeUnsupported,
+			Error:     fmt.Sprintf("不支持的 DNS 记录类型: %s", d.RecordType),
+			Latency:   time.Since(start).Milliseconds(),
 		}
 	}
 
 	elapsed := time.Since(start).Milliseconds()
 	if err != nil {
 		return Result{
-			Name:    d.Name(),
-			Target:  target,
-			Status:  "不健康",
-			Error:   err.Error(),
-			Latency: elapsed,
+			Name:      d.Name(),
+			Target:    target,
+			Status:    "不健康",
+			ErrorCode: ErrCodeDNSFailure,
+			Error:     err.Error(),
+			Latency:   elapsed,
 		}
 	}
 	return Result{

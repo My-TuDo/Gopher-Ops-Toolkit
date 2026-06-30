@@ -87,6 +87,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	resp, err := defaultHTTPClient.Do(req)
 	if err != nil {
 		base.Status = "不健康"
+		base.ErrorCode = ErrCodeSystemError
 		base.Error = fmt.Sprintf("发送 HTTP 请求失败: %v", err)
 		base.Latency = time.Since(start).Milliseconds()
 		return base
@@ -94,7 +95,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 
 	// 确保连接归还连接池：先耗尽 body，再 close
 	defer func() {
-			_, _ = io.Copy(io.Discard, resp.Body)
+		_, _ = io.Copy(io.Discard, resp.Body)
 	}()
 
 	// 判断 HTTP 状态码
@@ -106,12 +107,14 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 			body, readErr := io.ReadAll(limitedReader)
 			if readErr != nil {
 				base.Status = "不健康"
+				base.ErrorCode = ErrCodeSystemError
 				base.Error = fmt.Sprintf("读取响应体失败: %v", readErr)
 				base.Latency = time.Since(start).Milliseconds()
 				return base
 			}
 			if !strings.Contains(string(body), h.Keyword) {
 				base.Status = "不健康"
+				base.ErrorCode = ErrCodeSystemError
 				base.Error = fmt.Sprintf("HTTP 响应体不包含关键字: %s", h.Keyword)
 				base.Latency = time.Since(start).Milliseconds()
 				return base
@@ -124,6 +127,7 @@ func (h HTTPProber) Probe(target string, timeout time.Duration) Result {
 	}
 
 	base.Status = "不健康"
+	base.ErrorCode = ErrCodeSystemError
 	base.Error = fmt.Sprintf("HTTP 状态码异常: %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 	base.Latency = time.Since(start).Milliseconds()
 	return base

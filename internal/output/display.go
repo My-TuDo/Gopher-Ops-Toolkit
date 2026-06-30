@@ -3,6 +3,7 @@ package output
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/My-TuDo/Gopher-Ops-Toolkit/internal/prober"
 )
@@ -20,7 +21,8 @@ func RenderResult(results []prober.Result, format string) {
 func RenderResultJSON(results []prober.Result) {
 	data, err := json.MarshalIndent(results, "", "  ")
 	if err != nil {
-		panic(err)
+		os.Stderr.WriteString(fmt.Sprintf("JSON 序列化失败: %v\n", err))
+		return
 	}
 	fmt.Println(string(data))
 }

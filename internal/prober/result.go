@@ -27,18 +27,20 @@ const (
 	ErrCodeSystemError = "SYSTEM_ERROR" // 系统错误
 )
 
-// String 格式化输出结果
-func (r Result) String() string {
-	if r.Error != "" {
-		return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 错误: %s", r.Name, r.Target, r.Status, r.Error)
-	}
-	return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 详情：%s", r.Name, r.Target, r.Status, r.Detail)
-}
+// // String 格式化输出结果
+// func (r Result) String() string {
+// 	if r.Error != "" {
+// 		return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 错误: %s", r.Name, r.Target, r.Status, r.Error)
+// 	}
+// 	return fmt.Sprintf("项目: %s, 目标: %s, 状态: %s, 详情：%s", r.Name, r.Target, r.Status, r.Detail)
+// }
 
 const (
 	// maxConcurrentProbes 控制并发探测的最大 goroutine 数量
 	maxConcurrentProbes = 5
 )
+
+var globalSem = make(chan struct{}, 20) // 先硬编码，全局最多 20 个并发 goroutine
 
 // MultiRoundProbe 对探针执行多轮并发探测，返回平均值。
 //

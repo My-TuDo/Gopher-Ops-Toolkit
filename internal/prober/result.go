@@ -49,6 +49,9 @@ var globalSem = make(chan struct{}, 20) // 先硬编码，全局最多 20 个并
 //   - 熔断机制：失败次数超过阈值时自动取消剩余探测
 //   - 优雅取消：通过 context 通知所有 goroutine 退出
 func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int) Result {
+	globalSem <- struct{}{}        // 获取全局令牌
+	defer func() { <-globalSem }() // 释放全局令牌
+
 	if rounds <= 1 {
 		return p.Probe(target, timeout)
 	}

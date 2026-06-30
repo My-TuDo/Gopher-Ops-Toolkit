@@ -59,6 +59,7 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 	sem := make(chan struct{}, maxConcurrentProbes) // 信号量：控制并发数
 	var wg sync.WaitGroup
 	var failureCount atomic.Int32
+	var cancelled atomic.Bool // 标记是否已取消
 
 	for i := 0; i < rounds; i++ {
 		// 令牌获取前检查熔断
@@ -85,12 +86,17 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 			}
 
 			res := p.Probe(target, timeout)
+
+			if cancelled.Load() {
+				return
+			}
 			success := res.Status == "健康"
 
 			if !success {
 				// 失败计数达到阈值时触发熔断
 				if failureCount.Add(1) >= failureThreshold {
 					cancel()
+					cancelled.Store(true)
 				}
 			}
 

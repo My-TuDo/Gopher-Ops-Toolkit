@@ -11,6 +11,7 @@ import (
 type DNSProber struct {
 	RecordType string // 可选参数，指定 DNS 记录类型，如 A、AAAA、CNAME 等
 	DNSServer  string // 可选参数，指定 DNS 服务器地址，如 8.8.8.8
+
 }
 
 func (d DNSProber) Name() string {
@@ -39,8 +40,8 @@ func (d DNSProber) Probe(target string, timeout time.Duration) Result {
 
 		// 把 go 默认的拨号行为，改成连指定的 DNS 服务器
 		resolver.Dial = func(ctx context.Context, network, address string) (net.Conn, error) {
-			dialer := net.Dialer{Timeout: timeout}
-			return dialer.DialContext(ctx, "udp", dnsServer)
+			dialer := net.Dialer{}
+			return dialer.DialContext(ctx, network, dnsServer)
 		}
 	}
 

@@ -116,3 +116,14 @@ func BenchmarkMultiRoundProbe_Concurrent50(b *testing.B) {
 		MultiRoundProbe(p, "target", time.Second, 50)
 	}
 }
+
+// 基准 4：模拟多客户端并发（验证全局限流）
+func BenchmarkMultiRoundProbe_ConcurrentClients(b *testing.B) {
+	p := slowMockProber{}
+	b.ResetTimer()
+	b.RunParallel(func(pb *testing.PB) {
+		for pb.Next() {
+			MultiRoundProbe(p, "target", time.Second, 5)
+		}
+	})
+}

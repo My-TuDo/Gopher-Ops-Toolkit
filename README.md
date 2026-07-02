@@ -199,12 +199,29 @@ docker run --rm \
 
 ---
 
-## 开发
+## 测试
 
 ```bash
-# 安装 Git hooks（阻止误推送）
-./scripts/setup-hooks.sh
+# 运行全部测试
+go test ./... -short -timeout 30s
 ```
+
+| 包 | 状态 |
+|------|------|
+| `internal/prober` | ✅ 通过 |
+| `internal/executor` | ✅ 通过 |
+| `tests` | ✅ 通过 |
+
+### 基准测试
+
+```
+BenchmarkMultiRoundProbe_Serial-12               5.2ms/op    0 allocs/op
+BenchmarkMultiRoundProbe_Concurrent10-12         10.5ms/op   44 allocs/op
+BenchmarkMultiRoundProbe_Concurrent50-12         52.4ms/op   260 allocs/op
+BenchmarkMultiRoundProbe_ConcurrentClients-12    0.45ms/op   18 allocs/op
+```
+
+> `ConcurrentClients` 模拟多客户端并发请求，验证全局限流机制有效。
 
 ## 开发
 

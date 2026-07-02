@@ -76,3 +76,43 @@ func TestMultiRoundProbe_AllFail(t *testing.T) {
 		t.Error("期望有错误信息，但为空")
 	}
 }
+
+// ———————————————————————————————————————————————————————————
+// Benchmark: MultiRoundProbe 并发性能基准
+// ———————————————————————————————————————————————————————————
+
+// 模拟延时 5ms 的探针
+type slowMockProber struct{}
+
+func (slowMockProber) Probe(_ string, _ time.Duration) Result {
+	time.Sleep(5 * time.Millisecond)
+	return Result{Status: "健康", Latency: 5}
+}
+func (slowMockProber) Name() string { return "bench-prober" }
+
+// 基准 1：串行单轮（baseline）
+func BenchmarkMultiRoundProbe_Serial(b *testing.B) {
+	p := slowMockProber{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		MultiRoundProbe(p, "target", time.Second, 1)
+	}
+}
+
+// 基准 2：并发 10 轮
+func BenchmarkMultiRoundProbe_Concurrent10(b *testing.B) {
+	p := slowMockProber{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		MultiRoundProbe(p, "target", time.Second, 10)
+	}
+}
+
+// 基准 3：并发 50 轮（熔断场景）
+func BenchmarkMultiRoundProbe_Concurrent50(b *testing.B) {
+	p := slowMockProber{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		MultiRoundProbe(p, "target", time.Second, 50)
+	}
+}

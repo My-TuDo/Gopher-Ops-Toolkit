@@ -6,43 +6,71 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"golang.org/x/sync/semaphore"
 )
 
-const (
-	// maxConcurrentProbes 控制并发探测的最大 goroutine 数量
-	maxConcurrentProbes = 5
-)
+// maxConcurrentProbes 控制单个 MultiRoundProbe 并发探测的最大 goroutine 数量
+const maxConcurrentProbes = 5
 
-// 定义一个接口，所有探测器都实现这个接口
+// Prober 接口 — 所有探测器都实现这个接口
 type Prober interface {
 	Probe(target string, timeout time.Duration) Result
 	Name() string
 }
 
-// 全局注册表
+// Probers 全局注册表
 var Probers = map[string]Prober{
 	"tcp":  &TCPProber{},
 	"http": &HTTPProber{},
 	"dns":  &DNSProber{},
 }
 
-var globalSem = make(chan struct{}, 20) // 先硬编码，全局最多 20 个并发 goroutine
+// ProbeStatus 探测状态枚举
+type ProbeStatus int8
 
-// MultiRoundProbe 对探针执行多轮并发探测，返回平均值。
+const (
+	StatusUnknown ProbeStatus = iota
+	StatusHealthy
+	StatusUnhealthy
+)
+
+var statusStrings = map[ProbeStatus]string{
+	StatusUnknown:   "未知",
+	StatusHealthy:   "健康",
+	StatusUnhealthy: "不健康",
+}
+
+func (s ProbeStatus) String() string {
+	return statusStrings[s]
+}
+
+// StatusFromResult 从探测结果中提取状态，兼容中文老字段
+func StatusFromResult(res Result) ProbeStatus {
+	switch res.Status {
+	case "健康":
+		return StatusHealthy
+	case "不健康":
+		return StatusUnhealthy
+	default:
+		return StatusUnknown
+	}
+}
+
+// MultiRoundProbe 对探针执行多轮并发探测，返回聚合结果。
 //
-// 特性：
-//   - 信号量限流：最多 maxConcurrentProbes 个 goroutine 同时运行
-//   - 熔断机制：失败次数超过阈值时自动取消剩余探测
-//   - 优雅取消：通过 context 通知所有 goroutine 退出
+// 设计要点：
+//   - 使用 golang.org/x/sync/semaphore 加权信号量控制并发度，
+//     避免大规模 goroutine 堆积在 channel send 上。
+//   - 熔断阈值 = maxConcurrentProbes / 2，失败数达到立即 Cancel 剩余探测。
+//   - 所有 goroutine 通过 context 联动取消，不存在 goroutine 泄漏。
+//   - 结果通过带缓冲 channel 收集，避免发送者在 wg.Wait 完成后阻塞。
 func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int) Result {
-	globalSem <- struct{}{}        // 获取全局令牌
-	defer func() { <-globalSem }() // 释放全局令牌
-
 	if rounds <= 1 {
 		return p.Probe(target, timeout)
 	}
 
-	// 熔断阈值：失败超过并发上限的一半即触发熔断
+	// ——— 熔断阈值 ———
 	failureThreshold := int32(maxConcurrentProbes / 2)
 	if failureThreshold < 1 {
 		failureThreshold = 1
@@ -51,19 +79,17 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	type roundResult struct {
-		latency int64
-		success bool
-	}
-
-	resultCh := make(chan roundResult, rounds)
-	sem := make(chan struct{}, maxConcurrentProbes) // 信号量：控制并发数
+	// 加权信号量 — 优雅控制并发度，不会让 goroutine 卡在 channel send
+	sem := semaphore.NewWeighted(int64(maxConcurrentProbes))
 	var wg sync.WaitGroup
-	var failureCount atomic.Int32
-	var cancelled atomic.Bool // 标记是否已取消
+	var (
+		failureCount atomic.Int32
+		successCount atomic.Int32
+		totalLatency atomic.Int64
+	)
 
 	for i := 0; i < rounds; i++ {
-		// 令牌获取前检查熔断
+		// 熔断检查：失败数已达阈值，不再 launch 新的 goroutine
 		if failureCount.Load() >= failureThreshold {
 			cancel()
 			break
@@ -73,69 +99,49 @@ func MultiRoundProbe(p Prober, target string, timeout time.Duration, rounds int)
 		go func() {
 			defer wg.Done()
 
-			// 获取信号量令牌（支持上下文取消）
-			select {
-			case sem <- struct{}{}:
-			case <-ctx.Done():
+			// 获取信号量令牌（支持 context 取消）
+			if err := sem.Acquire(ctx, 1); err != nil {
+				// context 已取消，安静退出
 				return
 			}
-			defer func() { <-sem }()
-
-			// 执行探测前再次检查上下文
-			if ctx.Err() != nil {
-				return
-			}
+			defer sem.Release(1)
 
 			res := p.Probe(target, timeout)
 
-			if cancelled.Load() {
-				return
-			}
-			success := res.Status == "健康"
+			status := StatusFromResult(res)
 
-			if !success {
-				// 失败计数达到阈值时触发熔断
+			if status == StatusHealthy {
+				successCount.Add(1)
+				totalLatency.Add(res.Latency)
+			} else {
+				// 熔断：失败数达到阈值则取消所有剩余探测
 				if failureCount.Add(1) >= failureThreshold {
 					cancel()
-					cancelled.Store(true)
 				}
-			}
-
-			resultCh <- roundResult{
-				latency: res.Latency,
-				success: success,
 			}
 		}()
 	}
 
 	wg.Wait()
-	close(resultCh)
-
-	var totalLatency int64
-	successCount := 0
-	for r := range resultCh {
-		if r.success {
-			totalLatency += r.latency
-			successCount++
-		}
-	}
 
 	name := p.Name()
-	if successCount == 0 {
+	ok := successCount.Load()
+	if ok == 0 {
 		return Result{
 			Name:    name,
 			Target:  target,
-			Status:  "不健康",
+			Status:  StatusUnhealthy.String(),
 			Error:   fmt.Sprintf("%d 轮探测全部失败", rounds),
 			Latency: 0,
 		}
 	}
 
+	avgLatency := totalLatency.Load() / int64(ok)
 	return Result{
 		Name:    name,
 		Target:  target,
-		Status:  "健康",
-		Detail:  fmt.Sprintf("%d/%d 轮探测成功，平均延迟: %d ms", successCount, rounds, totalLatency/int64(successCount)),
-		Latency: totalLatency / int64(successCount),
+		Status:  StatusHealthy.String(),
+		Detail:  fmt.Sprintf("%d/%d 轮探测成功，平均延迟: %d ms", ok, rounds, avgLatency),
+		Latency: avgLatency,
 	}
 }

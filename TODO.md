@@ -114,6 +114,15 @@
 - [x] **config.go: 空 error 处理块加输出**
   - `EnsureDefaultConfig` 失败时输出 `⚠️` 警告信息，用户有感知
 
+- [ ] **Result 结构体增加 ErrorCode 字段，区分「不健康」和「错误」**
+  - 当前 Status 只有「健康」「不健康」二值，无法区分：
+    - 目标服务挂了（如 TCP 拒绝连接）→ UNREACHABLE
+    - 工具自身不支持（如 DNS RecordType 不支持）→ UNSUPPORTED
+    - 探测超时 → TIMEOUT
+    - 系统错误（如权限不足）→ SYSTEM_ERROR
+  - 新增 `ErrorCode string` 字段，调用方可基于 ErrorCode 做不同策略
+  - 关联修改：所有 Probe() 返回 Result 的地方补充 ErrorCode
+
 - [ ] **tcp.go: Banner 读取超时可配置**
   - 当前写死 `300ms`，对于慢启动协议（SSH/Redis）可能漏读
   - 优化：提取为结构体字段或 config 项

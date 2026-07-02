@@ -8,6 +8,8 @@ require (
 	github.com/spf13/viper v1.21.0
 )
 
+require golang.org/x/sync v0.21.0 // indirect
+
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/clipperhouse/displaywidth v0.10.0 // indirect
